@@ -4,125 +4,265 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Laudaflo - Scanner</title>
+
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f1f5f9;
-  padding: 15px;
-  color: #183047;
+body{
+  font-family:Arial,sans-serif;
+  background:#f1f5f9;
+  padding:16px;
+  color:#183047;
 }
-h1 { text-align: center; }
-button {
-  background: #087f8c;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  padding: 15px;
-  margin: 8px 0;
-  font-size: 17px;
-  width: 100%;
+
+h1{
+  text-align:center;
+  font-size:32px;
 }
-input {
-  box-sizing: border-box;
-  width: 100%;
-  padding: 14px;
-  font-size: 17px;
-  margin: 8px 0;
+
+.card{
+  background:white;
+  padding:18px;
+  border-radius:16px;
+  margin-bottom:16px;
 }
-.card {
-  background: white;
-  padding: 18px;
-  border-radius: 15px;
-  margin-bottom: 15px;
+
+button{
+  width:100%;
+  padding:16px;
+  margin-top:10px;
+  border:none;
+  border-radius:12px;
+  font-size:18px;
+  background:#0b8d99;
+  color:white;
 }
-video {
-  width: 100%;
-  border-radius: 10px;
-  background: black;
+
+input{
+  box-sizing:border-box;
+  width:100%;
+  padding:15px;
+  margin-top:10px;
+  font-size:17px;
+  border:1px solid #aaa;
+  border-radius:10px;
 }
-#resultat {
-  font-weight: bold;
-  margin-top: 15px;
+
+#reader{
+  width:100%;
+}
+
+#resultat{
+  font-weight:bold;
+  font-size:18px;
+  margin-top:15px;
+}
+
+#message{
+  margin-top:12px;
 }
 </style>
 </head>
+
 <body>
 
 <h1>📦 Laudaflo</h1>
 
 <div class="card">
-<h2>📷 Scanner un produit</h2>
-<video id="camera" autoplay playsinline muted></video>
-<button onclick="demarrer()">Démarrer la caméra</button>
-<button onclick="arreter()">Arrêter la caméra</button>
-<p id="message"></p>
+  <h2>📷 Scanner un produit</h2>
+
+  <div id="reader"></div>
+
+  <button onclick="demarrerScanner()">Démarrer le scanner</button>
+  <button onclick="arreterScanner()">Arrêter le scanner</button>
+
+  <p id="message"></p>
 </div>
 
 <div class="card">
-<h3>Code-barres</h3>
-<input id="code" placeholder="Numéro du code-barres">
-<button onclick="rechercher()">Rechercher le produit</button>
-<p id="resultat"></p>
+  <h2>Code-barres</h2>
+
+  <input
+    id="code"
+    inputmode="numeric"
+    placeholder="Numéro du code-barres">
+
+  <button onclick="rechercher()">Rechercher le produit</button>
+
+  <p id="resultat"></p>
 </div>
 
 <div class="card" id="association" style="display:none">
-<h3>Associer un produit</h3>
-<input id="produit" placeholder="Nom du produit">
-<button onclick="enregistrer()">Enregistrer l'association</button>
+
+  <h2>Associer ce code</h2>
+
+  <input
+    id="produit"
+    placeholder="Ex. Coca-Cola 33 cl">
+
+  <button onclick="enregistrer()">
+    Enregistrer le produit
+  </button>
+
 </div>
 
 <script>
-let flux = null;
-let detecteur = null;
-let actif = false;
+
+let scanner = null;
+let scannerActif = false;
 let dernierCode = "";
 
-async function demarrer() {
-  const message = document.getElementById("message");
+async function demarrerScanner(){
 
-  if (!("BarcodeDetector" in window)) {
+  const message =
+    document.getElementById("message");
+
+  try{
+
+    if(scannerActif){
+      return;
+    }
+
+    scanner =
+      new Html5Qrcode("reader");
+
+    const cameras =
+      await Html5Qrcode.getCameras();
+
+    if(!cameras || cameras.length === 0){
+      message.textContent =
+        "Aucune caméra détectée.";
+      return;
+    }
+
+    let cameraId = cameras[0].id;
+
+    if(cameras.length > 1){
+      cameraId =
+        cameras[cameras.length - 1].id;
+    }
+
+    await scanner.start(
+      cameraId,
+      {
+        fps: 10,
+        qrbox: {
+          width: 280,
+          height: 140
+        }
+      },
+      codeDetecte,
+      () => {}
+    );
+
+    scannerActif = true;
+
     message.textContent =
-      "Scanner automatique non compatible avec ce navigateur.";
+      "Caméra activée. Place le code-barres dans le cadre.";
+
+  }catch(e){
+
+    message.textContent =
+      "Erreur caméra : " + e;
+
+  }
+
+}
+
+function codeDetecte(code){
+
+  document.getElementById("code").value =
+    code;
+
+  dernierCode = code;
+
+  rechercher();
+
+  arreterScanner();
+
+}
+
+async function arreterScanner(){
+
+  if(scanner && scannerActif){
+
+    try{
+      await scanner.stop();
+      await scanner.clear();
+    }catch(e){}
+
+  }
+
+  scannerActif = false;
+
+}
+
+function rechercher(){
+
+  const code =
+    document.getElementById("code")
+    .value.trim();
+
+  if(!code){
     return;
   }
 
-  try {
-    detecteur = new BarcodeDetector({
-      formats: ["ean_13", "ean_8", "upc_a", "upc_e"]
-    });
+  dernierCode = code;
 
-    flux = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" },
-      audio: false
-    });
+  const nom =
+    localStorage.getItem(
+      "produit_" + code
+    );
 
-    document.getElementById("camera").srcObject = flux;
-    actif = true;
-    message.textContent = "Caméra activée. Présentez un code-barres.";
-    analyser();
+  const resultat =
+    document.getElementById("resultat");
 
-  } catch (e) {
-    message.textContent = "Erreur caméra : " + e.message;
+  const association =
+    document.getElementById("association");
+
+  if(nom){
+
+    resultat.textContent =
+      "✅ Produit reconnu : " + nom;
+
+    association.style.display =
+      "none";
+
+  }else{
+
+    resultat.textContent =
+      "⚠️ Code inconnu : " + code;
+
+    association.style.display =
+      "block";
+
   }
+
 }
 
-async function analyser() {
-  if (!actif) return;
+function enregistrer(){
 
-  try {
-    const video = document.getElementById("camera");
+  const nom =
+    document.getElementById("produit")
+    .value.trim();
 
-    if (video.readyState >= 2) {
-      const codes = await detecteur.detect(video);
+  if(!nom || !dernierCode){
+    return;
+  }
 
-      if (codes.length > 0) {
-        document.getElementById("code").value =
-          codes[0].rawValue;
+  localStorage.setItem(
+    "produit_" + dernierCode,
+    nom
+  );
 
-        arreter();
-        rechercher();
-        return;
-      }
-    }
-  } catch (e) {
-    document
+  document.getElementById("produit").value =
+    "";
+
+  rechercher();
+
+}
+
+</script>
+
+</body>
+</html>
