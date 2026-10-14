@@ -24,12 +24,12 @@ nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid
 </style>
 </head>
 <body>
-<header><h1>[STOCK] Laudaflo</h1><span class="badge" id="saveStatus">Mode test local</span></header>
+<header><h1>Laudaflo</h1><span class="badge" id="saveStatus">Mode test local</span></header>
 <main>
 <section id="tab-scan">
   <div id="needImport" class="notice warning hidden"><b>Inventaire non charge.</b><br>Va dans " Import " et choisis le fichier Excel de la station. Le fichier est lu uniquement sur ce telephone.</div>
   <div class="card">
-    <h2>[SCAN] Scanner un produit</h2>
+    <h2>Scanner un produit</h2>
     <div id="reader"></div>
     <button id="startScan">Demarrer le scanner</button>
     <button id="stopScan" class="secondary">Arreter le scanner</button>
@@ -52,7 +52,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid
 
 <section id="tab-stock" class="hidden">
   <div class="card">
-    <h2>[RECHERCHE] Stock</h2>
+    <h2>Stock</h2>
     <input id="stockSearch" placeholder="Rechercher un produit...">
     <div id="stockResults" class="product-list"></div>
   </div>
@@ -60,7 +60,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid
 
 <section id="tab-expiry" class="hidden">
   <div class="card">
-    <h2>[DATES] Peremptions</h2>
+    <h2>Peremptions</h2>
     <div class="statgrid">
       <div class="stat"><b id="expExpired">0</b><span>depassees</span></div>
       <div class="stat"><b id="exp7">0</b><span><= 7 j</span></div>
@@ -71,12 +71,12 @@ nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid
 </section>
 
 <section id="tab-history" class="hidden">
-  <div class="card"><h2>[HISTORIQUE] Historique</h2><div id="historyList"></div></div>
+  <div class="card"><h2>Historique</h2><div id="historyList"></div></div>
 </section>
 
 <section id="tab-import" class="hidden">
   <div class="card">
-    <h2>[IMPORT] Importer l'inventaire Excel</h2>
+    <h2> Importer l'inventaire Excel</h2>
     <div class="notice"><b>Confidentialite :</b> le fichier est lu directement dans Chrome. Cette application de test ne l'envoie pas a GitHub ni a un serveur.</div>
     <input id="excelFile" type="file" accept=".xlsx,.xls">
     <button id="importExcel">Importer Boissons + Sec</button>
@@ -92,11 +92,11 @@ nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid
 </main>
 
 <nav>
-<button data-tab="scan" class="activeTab"><span>[SCAN]</span>Scanner</button>
-<button data-tab="stock"><span>[STOCK]</span>Stock</button>
-<button data-tab="expiry"><span>[DATES]</span>Dates</button>
-<button data-tab="history"><span>[HISTORIQUE]</span>Historique</button>
-<button data-tab="import"><span>[SORTIE]</span>Import</button>
+<button data-tab="scan" class="activeTab"><span></span>Scanner</button>
+<button data-tab="stock"><span></span>Stock</button>
+<button data-tab="expiry"><span></span>Dates</button>
+<button data-tab="history"><span></span>Historique</button>
+<button data-tab="import"><span></span>Import</button>
 </nav>
 
 <script>
@@ -165,7 +165,7 @@ function renderProduct(p){
   const shop=p.category==='boisson'?`<div class="notice"><b>Frigo / shop :</b> date ${esc(p.shop?.date||'-')} - quantite ${esc(p.shop?.raw||formatQty(p.shop?.qty))}<br><span class="small">La quantite frigo reste indicative dans ce test.</span></div>`:'';
   return `
     <h2>${esc(p.name)}</h2>
-    <p><span class="pill">${p.category==='boisson'?'Boisson Boisson':'Sec Sec'}</span>${barcode?`<span class="pill">[SCAN] ${esc(barcode)}</span>`:''}</p>
+    <p><span class="pill">${p.category==='boisson'?'Boisson Boisson':'Sec Sec'}</span>${barcode?`<span class="pill"> ${esc(barcode)}</span>`:''}</p>
     ${shop}
     <h3>${p.category==='boisson'?'Cave':'Stock global'} <span class="small">Total : ${total}</span></h3>
     <table><thead><tr><th>Date</th><th class="qty">Quantite</th></tr></thead><tbody>${rows}</tbody></table>
@@ -174,11 +174,11 @@ function renderProduct(p){
     <div class="row"><input id="deliveryDate" type="date"><input id="deliveryQty" type="number" min="1" inputmode="numeric" placeholder="Quantite"></div>
     <button onclick="receiveDelivery('${p.id}')">Ajouter la livraison</button>
     ${p.category==='boisson'?`
-      <h3 style="margin-top:18px">[SORTIE] Sortie cave -> frigo</h3>
+      <h3 style="margin-top:18px"> Sortie cave -> frigo</h3>
       <select id="outLot"><option value="">Choisir la date du lot</option>${p.lots.map(l=>`<option value="${l.id}">${esc(l.date||'Sans date')} - ${l.qty}</option>`).join('')}</select>
       <input id="outQty" type="number" min="1" inputmode="numeric" placeholder="Quantite remontee">
       <button onclick="stockOut('${p.id}')">Deduire de la cave</button>`:''}
-    <h3 style="margin-top:18px">[CORRECTION] Correction d'inventaire</h3>
+    <h3 style="margin-top:18px"> Correction d'inventaire</h3>
     <select id="corrLot"><option value="">Choisir un lot existant</option>${p.lots.map(l=>`<option value="${l.id}">${esc(l.date||'Sans date')} - actuel ${l.qty}</option>`).join('')}</select>
     <input id="corrQty" type="number" min="0" inputmode="numeric" placeholder="Nouvelle quantite reelle">
     <button class="secondary" onclick="correctLot('${p.id}')">Enregistrer la correction</button>
@@ -201,7 +201,7 @@ async function startScanner(){
 async function stopScanner(){if(scanner&&scannerActive){try{await scanner.stop();await scanner.clear()}catch(e){}}scannerActive=false}
 function onScanned(code){document.getElementById('barcodeInput').value=code;currentBarcode=code;stopScanner();lookupBarcode()}
 function lookupBarcode(){const code=document.getElementById('barcodeInput').value.trim();if(!code)return;currentBarcode=code;const p=findBarcodeProduct(code);const out=document.getElementById('barcodeResult');document.getElementById('productCard').classList.add('hidden');if(p){out.textContent='OK - Produit reconnu : '+p.name;showProduct(p)}else{out.textContent='Attention - Code inconnu : '+code;document.getElementById('associateCard').classList.remove('hidden');document.getElementById('assocSearch').value='';renderAssoc('')}}
-function renderAssoc(q){const box=document.getElementById('assocResults');if(!state.products.length){box.innerHTML='<div class="product-item">Importe d'abord le fichier Excel.</div>';return}const s=q.trim().toLowerCase();const arr=state.products.filter(p=>!s||p.name.toLowerCase().includes(s)).slice(0,40);box.innerHTML=arr.map(p=>`<div class="product-item" onclick="associate('${p.id}')"><b>${esc(p.name)}</b><span class="small">${p.category==='boisson'?'Boisson':'Sec'}</span></div>`).join('')||'<div class="product-item">Aucun resultat</div>'}
+function renderAssoc(q){const box=document.getElementById('assocResults');if(!state.products.length){box.innerHTML='<div class="product-item">Importe d abord le fichier Excel.</div>';return}const s=q.trim().toLowerCase();const arr=state.products.filter(p=>!s||p.name.toLowerCase().includes(s)).slice(0,40);box.innerHTML=arr.map(p=>`<div class="product-item" onclick="associate('${p.id}')"><b>${esc(p.name)}</b><span class="small">${p.category==='boisson'?'Boisson':'Sec'}</span></div>`).join('')||'<div class="product-item">Aucun resultat</div>'}
 function associate(id){if(!currentBarcode)return;barcodeMap[currentBarcode]=id;save();const p=productById(id);document.getElementById('barcodeResult').textContent='OK - Produit associe : '+p.name;showProduct(p)}
 
 function renderStock(q=''){const box=document.getElementById('stockResults');const s=q.trim().toLowerCase();const arr=state.products.filter(p=>!s||p.name.toLowerCase().includes(s)).slice(0,80);box.innerHTML=arr.map(p=>`<div class="product-item" onclick="openFromStock('${p.id}')"><b>${esc(p.name)}</b><span class="small">${p.category==='boisson'?'Boisson Boisson':'Sec Sec'} - ${p.lots.reduce((a,l)=>a+(Number(l.qty)||0),0)} en ${p.category==='boisson'?'cave':'stock'}</span></div>`).join('')||'<div class="product-item">Aucun produit</div>'}
