@@ -3,220 +3,170 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b8d99">
-<title>Laudaflo - Inventaire mobile</title>
+<meta name="theme-color" content="#17324d">
+<title>Laudaflo - Test V7</title>
+
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
 <style>
-:root{--teal:#0b8d99;--navy:#183047;--bg:#f1f5f9;--card:#fff;--muted:#64748b;--danger:#b91c1c;--warn:#b45309;--ok:#166534;--line:#dbe3ea}
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--navy)}
-header{position:sticky;top:0;z-index:10;background:var(--navy);color:white;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px #0002}
-header h1{font-size:22px;margin:0}.badge{background:#ffffff22;border:1px solid #ffffff44;border-radius:999px;padding:6px 9px;font-size:12px}
-main{max-width:760px;margin:auto;padding:14px 14px 92px}.card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px #0001}.hidden{display:none!important}
-h2,h3{margin:0 0 12px}.small{font-size:13px;color:var(--muted)}.notice{background:#e0f2fe;border-left:4px solid #0284c7;padding:12px;border-radius:10px;margin:10px 0}.warning{background:#fff7ed;border-left-color:#f97316}.danger{background:#fef2f2;border-left-color:#dc2626}
-button,.btn{appearance:none;border:0;border-radius:12px;background:var(--teal);color:white;font-weight:700;font-size:16px;padding:14px 16px;width:100%;margin:6px 0;cursor:pointer}.secondary{background:#e2e8f0;color:var(--navy)}.dangerBtn{background:#b91c1c}.ghost{background:white;color:var(--teal);border:1px solid var(--teal)}
-input,select{width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px;background:white;margin:5px 0 10px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-#reader{width:100%;overflow:hidden;border-radius:12px}.result{font-weight:700;font-size:17px;margin-top:10px}.product-list{max-height:330px;overflow:auto;border:1px solid var(--line);border-radius:10px}.product-item{padding:12px;border-bottom:1px solid var(--line);cursor:pointer}.product-item:last-child{border-bottom:0}.product-item b{display:block}.pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;background:#e2e8f0;margin-right:4px}
-table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:9px 6px;border-bottom:1px solid var(--line)}th{font-size:12px;text-transform:uppercase;color:var(--muted)}.qty{text-align:right;font-weight:700}.expired{color:var(--danger);font-weight:700}.soon{color:var(--warn);font-weight:700}.ok{color:var(--ok)}
-nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);z-index:20;padding-bottom:max(4px,env(safe-area-inset-bottom))}nav button{background:white;color:var(--navy);font-size:11px;margin:0;border-radius:0;padding:10px 2px}nav button span{display:block;font-size:22px;margin-bottom:3px}.activeTab{color:var(--teal)!important}
-.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:#f8fafc;border:1px solid var(--line);padding:10px;border-radius:12px;text-align:center}.stat b{font-size:20px;display:block}.expiry-item{padding:10px;border-bottom:1px solid var(--line)}.expiry-item:last-child{border-bottom:0}
-@media(max-width:420px){.row,.row3{grid-template-columns:1fr}.statgrid{grid-template-columns:1fr 1fr 1fr}}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f1f5f9;color:#17324d}
+header{background:#17324d;color:#fff;padding:14px 16px;font-weight:700;font-size:22px}
+main{padding:14px 14px 90px;max-width:760px;margin:auto}
+.card{background:#fff;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px #0001}
+button,.buttonlike{width:100%;border:0;border-radius:12px;padding:14px 16px;margin:6px 0;background:#0b8d99;color:#fff;font-size:16px;font-weight:700}
+.secondary{background:#dfe7ee;color:#17324d}
+input{width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px;margin:6px 0}
+.hidden{display:none!important}
+#reader{width:100%;overflow:hidden;border-radius:12px}
+.message{margin-top:10px;font-size:14px}
+nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(3,1fr);background:#fff;border-top:1px solid #dbe3ea}
+nav button{margin:0;border-radius:0;background:#fff;color:#17324d;padding:14px 4px;font-size:13px}
+nav button.active{color:#0b8d99;border-top:3px solid #0b8d99}
+.small{font-size:13px;color:#64748b}
 </style>
 </head>
 <body>
-<header><h1>Laudaflo</h1><span class="badge" id="saveStatus">Mode test local</span></header>
+
+<header>Laudaflo - Test V7</header>
+
 <main>
 <section id="tab-scan">
-  <div id="needImport" class="notice warning hidden"><b>Inventaire non charge.</b><br>Va dans " Import " et choisis le fichier Excel de la station. Le fichier est lu uniquement sur ce telephone.</div>
   <div class="card">
-    <h2>Scanner un produit</h2>
+    <h2>Scanner</h2>
     <div id="reader"></div>
-    <button id="startScan">Demarrer le scanner</button>
-    <button id="stopScan" class="secondary">Arreter le scanner</button>
-    <div id="scanMsg" class="small"></div>
+    <button onclick="startScanner()">Demarrer le scanner</button>
+    <button class="secondary" onclick="stopScanner()">Arreter le scanner</button>
+    <div id="scanMsg" class="message"></div>
   </div>
+
   <div class="card">
     <h3>Code-barres</h3>
-    <input id="barcodeInput" inputmode="numeric" placeholder="Code-barres">
-    <button id="lookupBarcode">Rechercher</button>
-    <div id="barcodeResult" class="result"></div>
+    <input id="barcode" inputmode="numeric" placeholder="Code-barres">
+    <button onclick="showBarcode()">Afficher le code</button>
+    <div id="barcodeMsg" class="message"></div>
   </div>
-  <div id="associateCard" class="card hidden">
-    <h3>Associer ce code a une reference</h3>
-    <p class="small">Cette association ne sera a faire qu'une seule fois sur ce telephone.</p>
-    <input id="assocSearch" placeholder="Ex. Nutroma, Coca, Red Bull...">
-    <div id="assocResults" class="product-list"></div>
-  </div>
-  <div id="productCard" class="card hidden"></div>
 </section>
 
 <section id="tab-stock" class="hidden">
   <div class="card">
     <h2>Stock</h2>
-    <input id="stockSearch" placeholder="Rechercher un produit...">
-    <div id="stockResults" class="product-list"></div>
+    <p>Si tu vois cet ecran, le bouton Stock fonctionne.</p>
+    <p class="small">On ajoutera ton vrai inventaire seulement apres avoir valide cette etape.</p>
   </div>
-</section>
-
-<section id="tab-expiry" class="hidden">
-  <div class="card">
-    <h2>Peremptions</h2>
-    <div class="statgrid">
-      <div class="stat"><b id="expExpired">0</b><span>depassees</span></div>
-      <div class="stat"><b id="exp7">0</b><span><= 7 j</span></div>
-      <div class="stat"><b id="exp30">0</b><span><= 30 j</span></div>
-    </div>
-  </div>
-  <div class="card"><div id="expiryList"></div></div>
-</section>
-
-<section id="tab-history" class="hidden">
-  <div class="card"><h2>Historique</h2><div id="historyList"></div></div>
 </section>
 
 <section id="tab-import" class="hidden">
   <div class="card">
-    <h2> Importer l'inventaire Excel</h2>
-    <div class="notice"><b>Confidentialite :</b> le fichier est lu directement dans Chrome. Cette application de test ne l'envoie pas a GitHub ni a un serveur.</div>
+    <h2>Import Excel</h2>
+    <p>Choisis simplement ton fichier Excel pour ce test.</p>
     <input id="excelFile" type="file" accept=".xlsx,.xls">
-    <button id="importExcel">Importer Boissons + Sec</button>
-    <div id="importMsg" class="result"></div>
-  </div>
-  <div class="card">
-    <h3>Sauvegarde du test</h3>
-    <p class="small">Les changements sont gardes dans Chrome sur ce telephone. Fais une sauvegarde avant d'effacer les donnees du navigateur.</p>
-    <button id="downloadBackup" class="ghost">Telecharger une sauvegarde JSON</button>
-    <button id="resetApp" class="dangerBtn">Reinitialiser les donnees de test</button>
+    <div id="fileMsg" class="message"></div>
   </div>
 </section>
 </main>
 
 <nav>
-<button data-tab="scan" class="activeTab"><span></span>Scanner</button>
-<button data-tab="stock"><span></span>Stock</button>
-<button data-tab="expiry"><span></span>Dates</button>
-<button data-tab="history"><span></span>Historique</button>
-<button data-tab="import"><span></span>Import</button>
+  <button id="nav-scan" class="active" onclick="showTab('scan')">Scanner</button>
+  <button id="nav-stock" onclick="showTab('stock')">Stock</button>
+  <button id="nav-import" onclick="showTab('import')">Import</button>
 </nav>
 
 <script>
-const STORE_KEY='laudaflo_test_state_v3';
-const BARCODE_KEY='laudaflo_test_barcodes_v3';
-let state={products:[],movements:[],importedAt:null};
-let barcodeMap={};
-let scanner=null, scannerActive=false, currentBarcode='';
+var scanner = null;
+var scannerActive = false;
 
-function load(){try{state=JSON.parse(localStorage.getItem(STORE_KEY))||state}catch(e){};try{barcodeMap=JSON.parse(localStorage.getItem(BARCODE_KEY))||{}}catch(e){};refreshAll()}
-function save(){localStorage.setItem(STORE_KEY,JSON.stringify(state));localStorage.setItem(BARCODE_KEY,JSON.stringify(barcodeMap));document.getElementById('saveStatus').textContent='Enregistre sur ce telephone'}
-function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36)}
-function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-function qtyNum(v){if(typeof v==='number'&&isFinite(v))return v;const s=String(v??'').trim().replace(',','.');if(/^[-+]?\d+(\.\d+)?$/.test(s))return Number(s);return null}
-function excelDate(v){
-  if(v===null||v===undefined||v===''||v==='/')return '';
-  if(typeof v==='number'){
-    const d=XLSX.SSF.parse_date_code(v); if(d&&d.y){return `${String(d.d).padStart(2,'0')}/${String(d.m).padStart(2,'0')}/${d.y}`}
+function showTab(name){
+  document.getElementById('tab-scan').classList.add('hidden');
+  document.getElementById('tab-stock').classList.add('hidden');
+  document.getElementById('tab-import').classList.add('hidden');
+
+  document.getElementById('tab-' + name).classList.remove('hidden');
+
+  document.getElementById('nav-scan').classList.remove('active');
+  document.getElementById('nav-stock').classList.remove('active');
+  document.getElementById('nav-import').classList.remove('active');
+  document.getElementById('nav-' + name).classList.add('active');
+
+  if(name !== 'scan'){
+    stopScanner();
   }
-  const s=String(v).trim();
-  const m=s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})$/);
-  if(m){let y=Number(m[3]);if(y<100)y+=2000;return `${String(m[1]).padStart(2,'0')}/${String(m[2]).padStart(2,'0')}/${y}`}
-  return s;
 }
-function dateToObj(s){const m=String(s||'').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);if(!m)return null;const d=new Date(Number(m[3]),Number(m[2])-1,Number(m[1]));if(d.getFullYear()!=Number(m[3])||d.getMonth()!=Number(m[2])-1||d.getDate()!=Number(m[1]))return null;d.setHours(0,0,0,0);return d}
-function daysUntil(s){const d=dateToObj(s);if(!d)return null;const t=new Date();t.setHours(0,0,0,0);return Math.round((d-t)/86400000)}
-function productById(id){return state.products.find(p=>p.id===id)}
-function findBarcodeProduct(code){const id=barcodeMap[code];return id?productById(id):null}
-function formatQty(v){return v===null||v===undefined||v===''?'-':String(v)}
-
-async function importWorkbook(file){
-  const data=await file.arrayBuffer(); const wb=XLSX.read(data,{type:'array'}); const products=[];
-  if(wb.Sheets['Boissons']){
-    const rows=XLSX.utils.sheet_to_json(wb.Sheets['Boissons'],{header:1,defval:null,raw:true});
-    for(let r=1;r<rows.length;r++){
-      const a=rows[r], name=String(a[0]??'').trim(); if(!name)continue;
-      const shopDate=excelDate(a[1]); const shopRaw=a[2]; const shopQty=qtyNum(shopRaw);
-      const lots=[]; for(const [dc,qc] of [[3,4],[5,6],[7,8]]){const date=excelDate(a[dc]), q=qtyNum(a[qc]); if(date||q!==null){if(q!==null&&q!==0)lots.push({id:uid(),date,qty:q})}}
-      products.push({id:'boisson_'+r,name,category:'boisson',shop:{date:shopDate,qty:shopQty,raw:shopQty===null?String(shopRaw??''):null},lots});
-    }
-  }
-  if(wb.Sheets['Sec']){
-    const rows=XLSX.utils.sheet_to_json(wb.Sheets['Sec'],{header:1,defval:null,raw:true});
-    for(let r=1;r<rows.length;r++){
-      const a=rows[r], name=String(a[0]??'').trim(); if(!name)continue;
-      const lots=[]; for(const [dc,qc] of [[1,2],[3,4],[5,6],[7,8]]){const date=excelDate(a[dc]), q=qtyNum(a[qc]); if(date||q!==null){if(q!==null&&q!==0)lots.push({id:uid(),date,qty:q})}}
-      products.push({id:'sec_'+r,name,category:'sec',lots});
-    }
-  }
-  state={products,movements:[],importedAt:new Date().toISOString()};save();refreshAll();return products.length;
-}
-
-function addMovement(product,type,date,qty,note=''){
-  state.movements.unshift({id:uid(),ts:new Date().toISOString(),productId:product.id,product:product.name,type,date,qty,note});
-  state.movements=state.movements.slice(0,500);save();
-}
-function addLot(product,date,qty){let lot=product.lots.find(l=>l.date===date);if(lot)lot.qty+=qty;else product.lots.push({id:uid(),date,qty});product.lots=product.lots.filter(l=>l.qty!==0);}
-function reduceLot(product,lotId,qty){const lot=product.lots.find(l=>l.id===lotId);if(!lot||qty<=0||qty>lot.qty)return false;lot.qty-=qty;product.lots=product.lots.filter(l=>l.qty>0);return true}
-
-function renderProduct(p){
-  const barcode=Object.keys(barcodeMap).find(k=>barcodeMap[k]===p.id)||'';
-  const total=p.lots.reduce((s,l)=>s+(Number(l.qty)||0),0);
-  const rows=[...p.lots].sort((a,b)=>{const da=dateToObj(a.date),db=dateToObj(b.date);return da&&db?da-db:a.date.localeCompare(b.date)}).map(l=>{
-    const d=daysUntil(l.date);const cls=d===null?'':d<0?'expired':d<=30?'soon':'ok';
-    return `<tr><td class="${cls}">${esc(l.date||'Sans date')}</td><td class="qty">${esc(formatQty(l.qty))}</td></tr>`}).join('')||'<tr><td colspan="2">Aucun lot enregistre</td></tr>';
-  const shop=p.category==='boisson'?`<div class="notice"><b>Frigo / shop :</b> date ${esc(p.shop?.date||'-')} - quantite ${esc(p.shop?.raw||formatQty(p.shop?.qty))}<br><span class="small">La quantite frigo reste indicative dans ce test.</span></div>`:'';
-  return `
-    <h2>${esc(p.name)}</h2>
-    <p><span class="pill">${p.category==='boisson'?'Boisson Boisson':'Sec Sec'}</span>${barcode?`<span class="pill"> ${esc(barcode)}</span>`:''}</p>
-    ${shop}
-    <h3>${p.category==='boisson'?'Cave':'Stock global'} <span class="small">Total : ${total}</span></h3>
-    <table><thead><tr><th>Date</th><th class="qty">Quantite</th></tr></thead><tbody>${rows}</tbody></table>
-    <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
-    <h3>+ Livraison</h3>
-    <div class="row"><input id="deliveryDate" type="date"><input id="deliveryQty" type="number" min="1" inputmode="numeric" placeholder="Quantite"></div>
-    <button onclick="receiveDelivery('${p.id}')">Ajouter la livraison</button>
-    ${p.category==='boisson'?`
-      <h3 style="margin-top:18px"> Sortie cave -> frigo</h3>
-      <select id="outLot"><option value="">Choisir la date du lot</option>${p.lots.map(l=>`<option value="${l.id}">${esc(l.date||'Sans date')} - ${l.qty}</option>`).join('')}</select>
-      <input id="outQty" type="number" min="1" inputmode="numeric" placeholder="Quantite remontee">
-      <button onclick="stockOut('${p.id}')">Deduire de la cave</button>`:''}
-    <h3 style="margin-top:18px"> Correction d'inventaire</h3>
-    <select id="corrLot"><option value="">Choisir un lot existant</option>${p.lots.map(l=>`<option value="${l.id}">${esc(l.date||'Sans date')} - actuel ${l.qty}</option>`).join('')}</select>
-    <input id="corrQty" type="number" min="0" inputmode="numeric" placeholder="Nouvelle quantite reelle">
-    <button class="secondary" onclick="correctLot('${p.id}')">Enregistrer la correction</button>
-  `;
-}
-function showProduct(p){if(!p)return;const c=document.getElementById('productCard');c.innerHTML=renderProduct(p);c.classList.remove('hidden');document.getElementById('associateCard').classList.add('hidden');c.scrollIntoView({behavior:'smooth',block:'start'})}
-function receiveDelivery(id){const p=productById(id);const dateIn=document.getElementById('deliveryDate').value;const q=Number(document.getElementById('deliveryQty').value);if(!p||!dateIn||!q||q<=0){alert('Indique une date et une quantite.');return}const [y,m,d]=dateIn.split('-');const date=`${d}/${m}/${y}`;addLot(p,date,q);addMovement(p,'Livraison',date,q,p.category==='boisson'?'Ajout cave':'Ajout stock global');save();showProduct(p);refreshAll()}
-function stockOut(id){const p=productById(id),lotId=document.getElementById('outLot').value,q=Number(document.getElementById('outQty').value);const lot=p?.lots.find(l=>l.id===lotId);if(!p||!lot||!q||q<=0){alert('Choisis le lot et la quantite.');return}if(q>lot.qty){alert('La quantite demandee depasse le stock de ce lot.');return}const date=lot.date;reduceLot(p,lotId,q);addMovement(p,'Cave -> frigo',date,-q,'Quantite frigo non recalculee');save();showProduct(p);refreshAll()}
-function correctLot(id){const p=productById(id),lotId=document.getElementById('corrLot').value,newQ=Number(document.getElementById('corrQty').value);const lot=p?.lots.find(l=>l.id===lotId);if(!p||!lot||Number.isNaN(newQ)||newQ<0){alert('Choisis un lot et une quantite reelle.');return}const diff=newQ-lot.qty, date=lot.date;lot.qty=newQ;p.lots=p.lots.filter(l=>l.qty>0);addMovement(p,'Correction inventaire',date,diff,`Nouvelle quantite: ${newQ}`);save();showProduct(p);refreshAll()}
 
 async function startScanner(){
-  const msg=document.getElementById('scanMsg');
+  var msg = document.getElementById('scanMsg');
+
+  if(scannerActive){
+    msg.textContent = 'Le scanner est deja actif.';
+    return;
+  }
+
+  if(typeof Html5Qrcode === 'undefined'){
+    msg.textContent = 'La bibliotheque scanner ne s est pas chargee.';
+    return;
+  }
+
   try{
-    if(scannerActive)return; scanner=new Html5Qrcode('reader');
-    const cams=await Html5Qrcode.getCameras(); if(!cams.length){msg.textContent='Aucune camera detectee.';return}
-    let cam=cams[0].id; const back=cams.find(c=>/back|rear|environment|arriere/i.test(c.label)); if(back)cam=back.id; else if(cams.length>1)cam=cams[cams.length-1].id;
-    await scanner.start(cam,{fps:10,qrbox:{width:280,height:130}},onScanned,()=>{});scannerActive=true;msg.textContent='Camera activee. Place le code-barres dans le cadre.';
-  }catch(e){msg.textContent='Erreur camera : '+e}
+    scanner = new Html5Qrcode('reader');
+    var cameras = await Html5Qrcode.getCameras();
+
+    if(!cameras || cameras.length === 0){
+      msg.textContent = 'Aucune camera detectee.';
+      return;
+    }
+
+    var cameraId = cameras[0].id;
+
+    for(var i=0;i<cameras.length;i++){
+      var label = (cameras[i].label || '').toLowerCase();
+      if(label.indexOf('back') >= 0 || label.indexOf('rear') >= 0 || label.indexOf('environment') >= 0){
+        cameraId = cameras[i].id;
+        break;
+      }
+    }
+
+    if(cameras.length > 1 && cameraId === cameras[0].id){
+      cameraId = cameras[cameras.length - 1].id;
+    }
+
+    await scanner.start(
+      cameraId,
+      {fps:10, qrbox:{width:280,height:130}},
+      function(decodedText){
+        document.getElementById('barcode').value = decodedText;
+        document.getElementById('barcodeMsg').textContent = 'Code lu : ' + decodedText;
+        stopScanner();
+      },
+      function(){}
+    );
+
+    scannerActive = true;
+    msg.textContent = 'Camera activee.';
+  }catch(e){
+    msg.textContent = 'Erreur camera : ' + e;
+  }
 }
-async function stopScanner(){if(scanner&&scannerActive){try{await scanner.stop();await scanner.clear()}catch(e){}}scannerActive=false}
-function onScanned(code){document.getElementById('barcodeInput').value=code;currentBarcode=code;stopScanner();lookupBarcode()}
-function lookupBarcode(){const code=document.getElementById('barcodeInput').value.trim();if(!code)return;currentBarcode=code;const p=findBarcodeProduct(code);const out=document.getElementById('barcodeResult');document.getElementById('productCard').classList.add('hidden');if(p){out.textContent='OK - Produit reconnu : '+p.name;showProduct(p)}else{out.textContent='Attention - Code inconnu : '+code;document.getElementById('associateCard').classList.remove('hidden');document.getElementById('assocSearch').value='';renderAssoc('')}}
-function renderAssoc(q){const box=document.getElementById('assocResults');if(!state.products.length){box.innerHTML='<div class="product-item">Importe d abord le fichier Excel.</div>';return}const s=q.trim().toLowerCase();const arr=state.products.filter(p=>!s||p.name.toLowerCase().includes(s)).slice(0,40);box.innerHTML=arr.map(p=>`<div class="product-item" onclick="associate('${p.id}')"><b>${esc(p.name)}</b><span class="small">${p.category==='boisson'?'Boisson':'Sec'}</span></div>`).join('')||'<div class="product-item">Aucun resultat</div>'}
-function associate(id){if(!currentBarcode)return;barcodeMap[currentBarcode]=id;save();const p=productById(id);document.getElementById('barcodeResult').textContent='OK - Produit associe : '+p.name;showProduct(p)}
 
-function renderStock(q=''){const box=document.getElementById('stockResults');const s=q.trim().toLowerCase();const arr=state.products.filter(p=>!s||p.name.toLowerCase().includes(s)).slice(0,80);box.innerHTML=arr.map(p=>`<div class="product-item" onclick="openFromStock('${p.id}')"><b>${esc(p.name)}</b><span class="small">${p.category==='boisson'?'Boisson Boisson':'Sec Sec'} - ${p.lots.reduce((a,l)=>a+(Number(l.qty)||0),0)} en ${p.category==='boisson'?'cave':'stock'}</span></div>`).join('')||'<div class="product-item">Aucun produit</div>'}
-function openFromStock(id){switchTab('scan');showProduct(productById(id))}
-function renderExpiry(){const items=[];for(const p of state.products){for(const l of p.lots){const d=daysUntil(l.date);if(d!==null&&d<=30)items.push({p,l,d})}}items.sort((a,b)=>a.d-b.d);let expired=0,d7=0,d30=0;for(const x of items){if(x.d<0)expired++;else if(x.d<=7)d7++;else d30++}document.getElementById('expExpired').textContent=expired;document.getElementById('exp7').textContent=d7;document.getElementById('exp30').textContent=d30;document.getElementById('expiryList').innerHTML=items.length?items.map(x=>`<div class="expiry-item"><b>${esc(x.p.name)}</b><br><span class="${x.d<0?'expired':x.d<=7?'expired':'soon'}">${esc(x.l.date)} - ${x.d<0?Math.abs(x.d)+' j depassee':x.d+' j'}</span> - Qte ${x.l.qty} - ${x.p.category==='boisson'?'cave':'stock global'}</div>`).join(''):'Aucune date valide dans les 30 prochains jours.'}
-function renderHistory(){const box=document.getElementById('historyList');box.innerHTML=state.movements.length?state.movements.map(m=>`<div class="expiry-item"><b>${esc(m.product)}</b><br>${esc(m.type)} - ${esc(m.date||'')} - ${m.qty>0?'+':''}${m.qty}<br><span class="small">${new Date(m.ts).toLocaleString('fr-BE')} ${m.note?'- '+esc(m.note):''}</span></div>`).join(''):'Aucun mouvement enregistre.'}
-function refreshAll(){document.getElementById('needImport').classList.toggle('hidden',!!state.products.length);renderStock(document.getElementById('stockSearch')?.value||'');renderExpiry();renderHistory();renderAssoc(document.getElementById('assocSearch')?.value||'');}
-function switchTab(name){document.querySelectorAll('main>section').forEach(s=>s.classList.add('hidden'));document.getElementById('tab-'+name).classList.remove('hidden');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('activeTab',b.dataset.tab===name));if(name!=='scan')stopScanner();if(name==='expiry')renderExpiry();if(name==='history')renderHistory()}
+async function stopScanner(){
+  if(scanner && scannerActive){
+    try{
+      await scanner.stop();
+      await scanner.clear();
+    }catch(e){}
+  }
+  scannerActive = false;
+}
 
-document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
-document.getElementById('startScan').onclick=startScanner;document.getElementById('stopScan').onclick=stopScanner;document.getElementById('lookupBarcode').onclick=lookupBarcode;document.getElementById('barcodeInput').addEventListener('keydown',e=>{if(e.key==='Enter')lookupBarcode()});document.getElementById('assocSearch').addEventListener('input',e=>renderAssoc(e.target.value));document.getElementById('stockSearch').addEventListener('input',e=>renderStock(e.target.value));
-document.getElementById('importExcel').onclick=async()=>{const f=document.getElementById('excelFile').files[0];if(!f){alert('Choisis le fichier Excel.');return}if(state.products.length&&!confirm('Remplacer les donnees de test actuelles par le fichier Excel ?'))return;try{const n=await importWorkbook(f);document.getElementById('importMsg').textContent=`OK - ${n} references importees.`;switchTab('stock')}catch(e){document.getElementById('importMsg').textContent='Erreur import : '+e}}
-document.getElementById('downloadBackup').onclick=()=>{const blob=new Blob([JSON.stringify({state,barcodeMap,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='laudaflo-sauvegarde-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000)};
-document.getElementById('resetApp').onclick=()=>{if(confirm('Effacer tout le test local (inventaire, associations codes-barres et historique) ?')){localStorage.removeItem(STORE_KEY);localStorage.removeItem(BARCODE_KEY);state={products:[],movements:[],importedAt:null};barcodeMap={};location.reload()}};
-load();
+function showBarcode(){
+  var code = document.getElementById('barcode').value.trim();
+  document.getElementById('barcodeMsg').textContent = code ? ('Code : ' + code) : 'Aucun code saisi.';
+}
+
+document.getElementById('excelFile').addEventListener('change', function(){
+  var f = this.files && this.files[0];
+  document.getElementById('fileMsg').textContent = f ? ('Fichier selectionne : ' + f.name) : '';
+});
 </script>
+
 </body>
 </html>
