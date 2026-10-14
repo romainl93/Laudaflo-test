@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laudaflo - Scanner</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f1f5f9;
+  padding: 15px;
+  color: #183047;
+}
+h1 { text-align: center; }
+button {
+  background: #087f8c;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 8px 0;
+  font-size: 17px;
+  width: 100%;
+}
+input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 14px;
+  font-size: 17px;
+  margin: 8px 0;
+}
+.card {
+  background: white;
+  padding: 18px;
+  border-radius: 15px;
+  margin-bottom: 15px;
+}
+video {
+  width: 100%;
+  border-radius: 10px;
+  background: black;
+}
+#resultat {
+  font-weight: bold;
+  margin-top: 15px;
+}
+</style>
+</head>
+<body>
+
+<h1>📦 Laudaflo</h1>
+
+<div class="card">
+<h2>📷 Scanner un produit</h2>
+<video id="camera" autoplay playsinline muted></video>
+<button onclick="demarrer()">Démarrer la caméra</button>
+<button onclick="arreter()">Arrêter la caméra</button>
+<p id="message"></p>
+</div>
+
+<div class="card">
+<h3>Code-barres</h3>
+<input id="code" placeholder="Numéro du code-barres">
+<button onclick="rechercher()">Rechercher le produit</button>
+<p id="resultat"></p>
+</div>
+
+<div class="card" id="association" style="display:none">
+<h3>Associer un produit</h3>
+<input id="produit" placeholder="Nom du produit">
+<button onclick="enregistrer()">Enregistrer l'association</button>
+</div>
+
+<script>
+let flux = null;
+let detecteur = null;
+let actif = false;
+let dernierCode = "";
+
+async function demarrer() {
+  const message = document.getElementById("message");
+
+  if (!("BarcodeDetector" in window)) {
+    message.textContent =
+      "Scanner automatique non compatible avec ce navigateur.";
+    return;
+  }
+
+  try {
+    detecteur = new BarcodeDetector({
+      formats: ["ean_13", "ean_8", "upc_a", "upc_e"]
+    });
+
+    flux = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" },
+      audio: false
+    });
+
+    document.getElementById("camera").srcObject = flux;
+    actif = true;
+    message.textContent = "Caméra activée. Présentez un code-barres.";
+    analyser();
+
+  } catch (e) {
+    message.textContent = "Erreur caméra : " + e.message;
+  }
+}
+
+async function analyser() {
+  if (!actif) return;
+
+  try {
+    const video = document.getElementById("camera");
+
+    if (video.readyState >= 2) {
+      const codes = await detecteur.detect(video);
+
+      if (codes.length > 0) {
+        document.getElementById("code").value =
+          codes[0].rawValue;
+
+        arreter();
+        rechercher();
+        return;
+      }
+    }
+  } catch (e) {
+    document
