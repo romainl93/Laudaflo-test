@@ -24,15 +24,15 @@ nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid
 </style>
 </head>
 <body>
-<header><h1>ðŸ“¦ Laudaflo</h1><span class="badge" id="saveStatus">Mode test local</span></header>
+<header><h1>[STOCK] Laudaflo</h1><span class="badge" id="saveStatus">Mode test local</span></header>
 <main>
 <section id="tab-scan">
-  <div id="needImport" class="notice warning hidden"><b>Inventaire non chargÃ©.</b><br>Va dans Â« Import Â» et choisis le fichier Excel de la station. Le fichier est lu uniquement sur ce tÃ©lÃ©phone.</div>
+  <div id="needImport" class="notice warning hidden"><b>Inventaire non charge.</b><br>Va dans " Import " et choisis le fichier Excel de la station. Le fichier est lu uniquement sur ce telephone.</div>
   <div class="card">
-    <h2>ðŸ“· Scanner un produit</h2>
+    <h2>[SCAN] Scanner un produit</h2>
     <div id="reader"></div>
-    <button id="startScan">DÃ©marrer le scanner</button>
-    <button id="stopScan" class="secondary">ArrÃªter le scanner</button>
+    <button id="startScan">Demarrer le scanner</button>
+    <button id="stopScan" class="secondary">Arreter le scanner</button>
     <div id="scanMsg" class="small"></div>
   </div>
   <div class="card">
@@ -42,9 +42,9 @@ nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid
     <div id="barcodeResult" class="result"></div>
   </div>
   <div id="associateCard" class="card hidden">
-    <h3>Associer ce code Ã  une rÃ©fÃ©rence</h3>
-    <p class="small">Cette association ne sera Ã  faire qu'une seule fois sur ce tÃ©lÃ©phone.</p>
-    <input id="assocSearch" placeholder="Ex. Nutroma, Coca, Red Bullâ€¦">
+    <h3>Associer ce code a une reference</h3>
+    <p class="small">Cette association ne sera a faire qu'une seule fois sur ce telephone.</p>
+    <input id="assocSearch" placeholder="Ex. Nutroma, Coca, Red Bull...">
     <div id="assocResults" class="product-list"></div>
   </div>
   <div id="productCard" class="card hidden"></div>
@@ -52,51 +52,51 @@ nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid
 
 <section id="tab-stock" class="hidden">
   <div class="card">
-    <h2>ðŸ”Ž Stock</h2>
-    <input id="stockSearch" placeholder="Rechercher un produitâ€¦">
+    <h2>[RECHERCHE] Stock</h2>
+    <input id="stockSearch" placeholder="Rechercher un produit...">
     <div id="stockResults" class="product-list"></div>
   </div>
 </section>
 
 <section id="tab-expiry" class="hidden">
   <div class="card">
-    <h2>ðŸ“… PÃ©remptions</h2>
+    <h2>[DATES] Peremptions</h2>
     <div class="statgrid">
-      <div class="stat"><b id="expExpired">0</b><span>dÃ©passÃ©es</span></div>
-      <div class="stat"><b id="exp7">0</b><span>â‰¤ 7 j</span></div>
-      <div class="stat"><b id="exp30">0</b><span>â‰¤ 30 j</span></div>
+      <div class="stat"><b id="expExpired">0</b><span>depassees</span></div>
+      <div class="stat"><b id="exp7">0</b><span><= 7 j</span></div>
+      <div class="stat"><b id="exp30">0</b><span><= 30 j</span></div>
     </div>
   </div>
   <div class="card"><div id="expiryList"></div></div>
 </section>
 
 <section id="tab-history" class="hidden">
-  <div class="card"><h2>ðŸ§¾ Historique</h2><div id="historyList"></div></div>
+  <div class="card"><h2>[HISTORIQUE] Historique</h2><div id="historyList"></div></div>
 </section>
 
 <section id="tab-import" class="hidden">
   <div class="card">
-    <h2>ðŸ“¥ Importer l'inventaire Excel</h2>
-    <div class="notice"><b>ConfidentialitÃ© :</b> le fichier est lu directement dans Chrome. Cette application de test ne l'envoie pas Ã  GitHub ni Ã  un serveur.</div>
+    <h2>[IMPORT] Importer l'inventaire Excel</h2>
+    <div class="notice"><b>Confidentialite :</b> le fichier est lu directement dans Chrome. Cette application de test ne l'envoie pas a GitHub ni a un serveur.</div>
     <input id="excelFile" type="file" accept=".xlsx,.xls">
     <button id="importExcel">Importer Boissons + Sec</button>
     <div id="importMsg" class="result"></div>
   </div>
   <div class="card">
     <h3>Sauvegarde du test</h3>
-    <p class="small">Les changements sont gardÃ©s dans Chrome sur ce tÃ©lÃ©phone. Fais une sauvegarde avant d'effacer les donnÃ©es du navigateur.</p>
-    <button id="downloadBackup" class="ghost">TÃ©lÃ©charger une sauvegarde JSON</button>
-    <button id="resetApp" class="dangerBtn">RÃ©initialiser les donnÃ©es de test</button>
+    <p class="small">Les changements sont gardes dans Chrome sur ce telephone. Fais une sauvegarde avant d'effacer les donnees du navigateur.</p>
+    <button id="downloadBackup" class="ghost">Telecharger une sauvegarde JSON</button>
+    <button id="resetApp" class="dangerBtn">Reinitialiser les donnees de test</button>
   </div>
 </section>
 </main>
 
 <nav>
-<button data-tab="scan" class="activeTab"><span>ðŸ“·</span>Scanner</button>
-<button data-tab="stock"><span>ðŸ“¦</span>Stock</button>
-<button data-tab="expiry"><span>ðŸ“…</span>Dates</button>
-<button data-tab="history"><span>ðŸ§¾</span>Historique</button>
-<button data-tab="import"><span>â¬†ï¸</span>Import</button>
+<button data-tab="scan" class="activeTab"><span>[SCAN]</span>Scanner</button>
+<button data-tab="stock"><span>[STOCK]</span>Stock</button>
+<button data-tab="expiry"><span>[DATES]</span>Dates</button>
+<button data-tab="history"><span>[HISTORIQUE]</span>Historique</button>
+<button data-tab="import"><span>[SORTIE]</span>Import</button>
 </nav>
 
 <script>
@@ -107,7 +107,7 @@ let barcodeMap={};
 let scanner=null, scannerActive=false, currentBarcode='';
 
 function load(){try{state=JSON.parse(localStorage.getItem(STORE_KEY))||state}catch(e){};try{barcodeMap=JSON.parse(localStorage.getItem(BARCODE_KEY))||{}}catch(e){};refreshAll()}
-function save(){localStorage.setItem(STORE_KEY,JSON.stringify(state));localStorage.setItem(BARCODE_KEY,JSON.stringify(barcodeMap));document.getElementById('saveStatus').textContent='EnregistrÃ© sur ce tÃ©lÃ©phone'}
+function save(){localStorage.setItem(STORE_KEY,JSON.stringify(state));localStorage.setItem(BARCODE_KEY,JSON.stringify(barcodeMap));document.getElementById('saveStatus').textContent='Enregistre sur ce telephone'}
 function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function qtyNum(v){if(typeof v==='number'&&isFinite(v))return v;const s=String(v??'').trim().replace(',','.');if(/^[-+]?\d+(\.\d+)?$/.test(s))return Number(s);return null}
@@ -125,7 +125,7 @@ function dateToObj(s){const m=String(s||'').match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
 function daysUntil(s){const d=dateToObj(s);if(!d)return null;const t=new Date();t.setHours(0,0,0,0);return Math.round((d-t)/86400000)}
 function productById(id){return state.products.find(p=>p.id===id)}
 function findBarcodeProduct(code){const id=barcodeMap[code];return id?productById(id):null}
-function formatQty(v){return v===null||v===undefined||v===''?'â€”':String(v)}
+function formatQty(v){return v===null||v===undefined||v===''?'-':String(v)}
 
 async function importWorkbook(file){
   const data=await file.arrayBuffer(); const wb=XLSX.read(data,{type:'array'}); const products=[];
@@ -161,59 +161,59 @@ function renderProduct(p){
   const total=p.lots.reduce((s,l)=>s+(Number(l.qty)||0),0);
   const rows=[...p.lots].sort((a,b)=>{const da=dateToObj(a.date),db=dateToObj(b.date);return da&&db?da-db:a.date.localeCompare(b.date)}).map(l=>{
     const d=daysUntil(l.date);const cls=d===null?'':d<0?'expired':d<=30?'soon':'ok';
-    return `<tr><td class="${cls}">${esc(l.date||'Sans date')}</td><td class="qty">${esc(formatQty(l.qty))}</td></tr>`}).join('')||'<tr><td colspan="2">Aucun lot enregistrÃ©</td></tr>';
-  const shop=p.category==='boisson'?`<div class="notice"><b>Frigo / shop :</b> date ${esc(p.shop?.date||'â€”')} Â· quantitÃ© ${esc(p.shop?.raw||formatQty(p.shop?.qty))}<br><span class="small">La quantitÃ© frigo reste indicative dans ce test.</span></div>`:'';
+    return `<tr><td class="${cls}">${esc(l.date||'Sans date')}</td><td class="qty">${esc(formatQty(l.qty))}</td></tr>`}).join('')||'<tr><td colspan="2">Aucun lot enregistre</td></tr>';
+  const shop=p.category==='boisson'?`<div class="notice"><b>Frigo / shop :</b> date ${esc(p.shop?.date||'-')} - quantite ${esc(p.shop?.raw||formatQty(p.shop?.qty))}<br><span class="small">La quantite frigo reste indicative dans ce test.</span></div>`:'';
   return `
     <h2>${esc(p.name)}</h2>
-    <p><span class="pill">${p.category==='boisson'?'ðŸ¥¤ Boisson':'ðŸ« Sec'}</span>${barcode?`<span class="pill">ðŸ“· ${esc(barcode)}</span>`:''}</p>
+    <p><span class="pill">${p.category==='boisson'?'Boisson Boisson':'Sec Sec'}</span>${barcode?`<span class="pill">[SCAN] ${esc(barcode)}</span>`:''}</p>
     ${shop}
     <h3>${p.category==='boisson'?'Cave':'Stock global'} <span class="small">Total : ${total}</span></h3>
-    <table><thead><tr><th>Date</th><th class="qty">QuantitÃ©</th></tr></thead><tbody>${rows}</tbody></table>
+    <table><thead><tr><th>Date</th><th class="qty">Quantite</th></tr></thead><tbody>${rows}</tbody></table>
     <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
-    <h3>âž• Livraison</h3>
-    <div class="row"><input id="deliveryDate" type="date"><input id="deliveryQty" type="number" min="1" inputmode="numeric" placeholder="QuantitÃ©"></div>
+    <h3>+ Livraison</h3>
+    <div class="row"><input id="deliveryDate" type="date"><input id="deliveryQty" type="number" min="1" inputmode="numeric" placeholder="Quantite"></div>
     <button onclick="receiveDelivery('${p.id}')">Ajouter la livraison</button>
     ${p.category==='boisson'?`
-      <h3 style="margin-top:18px">â¬†ï¸ Sortie cave â†’ frigo</h3>
-      <select id="outLot"><option value="">Choisir la date du lot</option>${p.lots.map(l=>`<option value="${l.id}">${esc(l.date||'Sans date')} â€” ${l.qty}</option>`).join('')}</select>
-      <input id="outQty" type="number" min="1" inputmode="numeric" placeholder="QuantitÃ© remontÃ©e">
-      <button onclick="stockOut('${p.id}')">DÃ©duire de la cave</button>`:''}
-    <h3 style="margin-top:18px">ðŸ§® Correction d'inventaire</h3>
-    <select id="corrLot"><option value="">Choisir un lot existant</option>${p.lots.map(l=>`<option value="${l.id}">${esc(l.date||'Sans date')} â€” actuel ${l.qty}</option>`).join('')}</select>
-    <input id="corrQty" type="number" min="0" inputmode="numeric" placeholder="Nouvelle quantitÃ© rÃ©elle">
+      <h3 style="margin-top:18px">[SORTIE] Sortie cave -> frigo</h3>
+      <select id="outLot"><option value="">Choisir la date du lot</option>${p.lots.map(l=>`<option value="${l.id}">${esc(l.date||'Sans date')} - ${l.qty}</option>`).join('')}</select>
+      <input id="outQty" type="number" min="1" inputmode="numeric" placeholder="Quantite remontee">
+      <button onclick="stockOut('${p.id}')">Deduire de la cave</button>`:''}
+    <h3 style="margin-top:18px">[CORRECTION] Correction d'inventaire</h3>
+    <select id="corrLot"><option value="">Choisir un lot existant</option>${p.lots.map(l=>`<option value="${l.id}">${esc(l.date||'Sans date')} - actuel ${l.qty}</option>`).join('')}</select>
+    <input id="corrQty" type="number" min="0" inputmode="numeric" placeholder="Nouvelle quantite reelle">
     <button class="secondary" onclick="correctLot('${p.id}')">Enregistrer la correction</button>
   `;
 }
 function showProduct(p){if(!p)return;const c=document.getElementById('productCard');c.innerHTML=renderProduct(p);c.classList.remove('hidden');document.getElementById('associateCard').classList.add('hidden');c.scrollIntoView({behavior:'smooth',block:'start'})}
-function receiveDelivery(id){const p=productById(id);const dateIn=document.getElementById('deliveryDate').value;const q=Number(document.getElementById('deliveryQty').value);if(!p||!dateIn||!q||q<=0){alert('Indique une date et une quantitÃ©.');return}const [y,m,d]=dateIn.split('-');const date=`${d}/${m}/${y}`;addLot(p,date,q);addMovement(p,'Livraison',date,q,p.category==='boisson'?'Ajout cave':'Ajout stock global');save();showProduct(p);refreshAll()}
-function stockOut(id){const p=productById(id),lotId=document.getElementById('outLot').value,q=Number(document.getElementById('outQty').value);const lot=p?.lots.find(l=>l.id===lotId);if(!p||!lot||!q||q<=0){alert('Choisis le lot et la quantitÃ©.');return}if(q>lot.qty){alert('La quantitÃ© demandÃ©e dÃ©passe le stock de ce lot.');return}const date=lot.date;reduceLot(p,lotId,q);addMovement(p,'Cave â†’ frigo',date,-q,'QuantitÃ© frigo non recalculÃ©e');save();showProduct(p);refreshAll()}
-function correctLot(id){const p=productById(id),lotId=document.getElementById('corrLot').value,newQ=Number(document.getElementById('corrQty').value);const lot=p?.lots.find(l=>l.id===lotId);if(!p||!lot||Number.isNaN(newQ)||newQ<0){alert('Choisis un lot et une quantitÃ© rÃ©elle.');return}const diff=newQ-lot.qty, date=lot.date;lot.qty=newQ;p.lots=p.lots.filter(l=>l.qty>0);addMovement(p,'Correction inventaire',date,diff,`Nouvelle quantitÃ©: ${newQ}`);save();showProduct(p);refreshAll()}
+function receiveDelivery(id){const p=productById(id);const dateIn=document.getElementById('deliveryDate').value;const q=Number(document.getElementById('deliveryQty').value);if(!p||!dateIn||!q||q<=0){alert('Indique une date et une quantite.');return}const [y,m,d]=dateIn.split('-');const date=`${d}/${m}/${y}`;addLot(p,date,q);addMovement(p,'Livraison',date,q,p.category==='boisson'?'Ajout cave':'Ajout stock global');save();showProduct(p);refreshAll()}
+function stockOut(id){const p=productById(id),lotId=document.getElementById('outLot').value,q=Number(document.getElementById('outQty').value);const lot=p?.lots.find(l=>l.id===lotId);if(!p||!lot||!q||q<=0){alert('Choisis le lot et la quantite.');return}if(q>lot.qty){alert('La quantite demandee depasse le stock de ce lot.');return}const date=lot.date;reduceLot(p,lotId,q);addMovement(p,'Cave -> frigo',date,-q,'Quantite frigo non recalculee');save();showProduct(p);refreshAll()}
+function correctLot(id){const p=productById(id),lotId=document.getElementById('corrLot').value,newQ=Number(document.getElementById('corrQty').value);const lot=p?.lots.find(l=>l.id===lotId);if(!p||!lot||Number.isNaN(newQ)||newQ<0){alert('Choisis un lot et une quantite reelle.');return}const diff=newQ-lot.qty, date=lot.date;lot.qty=newQ;p.lots=p.lots.filter(l=>l.qty>0);addMovement(p,'Correction inventaire',date,diff,`Nouvelle quantite: ${newQ}`);save();showProduct(p);refreshAll()}
 
 async function startScanner(){
   const msg=document.getElementById('scanMsg');
   try{
     if(scannerActive)return; scanner=new Html5Qrcode('reader');
-    const cams=await Html5Qrcode.getCameras(); if(!cams.length){msg.textContent='Aucune camÃ©ra dÃ©tectÃ©e.';return}
-    let cam=cams[0].id; const back=cams.find(c=>/back|rear|environment|arriÃ¨re/i.test(c.label)); if(back)cam=back.id; else if(cams.length>1)cam=cams[cams.length-1].id;
-    await scanner.start(cam,{fps:10,qrbox:{width:280,height:130}},onScanned,()=>{});scannerActive=true;msg.textContent='CamÃ©ra activÃ©e. Place le code-barres dans le cadre.';
-  }catch(e){msg.textContent='Erreur camÃ©ra : '+e}
+    const cams=await Html5Qrcode.getCameras(); if(!cams.length){msg.textContent='Aucune camera detectee.';return}
+    let cam=cams[0].id; const back=cams.find(c=>/back|rear|environment|arriere/i.test(c.label)); if(back)cam=back.id; else if(cams.length>1)cam=cams[cams.length-1].id;
+    await scanner.start(cam,{fps:10,qrbox:{width:280,height:130}},onScanned,()=>{});scannerActive=true;msg.textContent='Camera activee. Place le code-barres dans le cadre.';
+  }catch(e){msg.textContent='Erreur camera : '+e}
 }
 async function stopScanner(){if(scanner&&scannerActive){try{await scanner.stop();await scanner.clear()}catch(e){}}scannerActive=false}
 function onScanned(code){document.getElementById('barcodeInput').value=code;currentBarcode=code;stopScanner();lookupBarcode()}
-function lookupBarcode(){const code=document.getElementById('barcodeInput').value.trim();if(!code)return;currentBarcode=code;const p=findBarcodeProduct(code);const out=document.getElementById('barcodeResult');document.getElementById('productCard').classList.add('hidden');if(p){out.textContent='âœ… Produit reconnu : '+p.name;showProduct(p)}else{out.textContent='âš ï¸ Code inconnu : '+code;document.getElementById('associateCard').classList.remove('hidden');document.getElementById('assocSearch').value='';renderAssoc('')}}
-function renderAssoc(q){const box=document.getElementById('assocResults');if(!state.products.length){box.innerHTML='<div class="product-item">Importe dâ€™abord le fichier Excel.</div>';return}const s=q.trim().toLowerCase();const arr=state.products.filter(p=>!s||p.name.toLowerCase().includes(s)).slice(0,40);box.innerHTML=arr.map(p=>`<div class="product-item" onclick="associate('${p.id}')"><b>${esc(p.name)}</b><span class="small">${p.category==='boisson'?'Boisson':'Sec'}</span></div>`).join('')||'<div class="product-item">Aucun rÃ©sultat</div>'}
-function associate(id){if(!currentBarcode)return;barcodeMap[currentBarcode]=id;save();const p=productById(id);document.getElementById('barcodeResult').textContent='âœ… Produit associÃ© : '+p.name;showProduct(p)}
+function lookupBarcode(){const code=document.getElementById('barcodeInput').value.trim();if(!code)return;currentBarcode=code;const p=findBarcodeProduct(code);const out=document.getElementById('barcodeResult');document.getElementById('productCard').classList.add('hidden');if(p){out.textContent='OK - Produit reconnu : '+p.name;showProduct(p)}else{out.textContent='Attention - Code inconnu : '+code;document.getElementById('associateCard').classList.remove('hidden');document.getElementById('assocSearch').value='';renderAssoc('')}}
+function renderAssoc(q){const box=document.getElementById('assocResults');if(!state.products.length){box.innerHTML='<div class="product-item">Importe d'abord le fichier Excel.</div>';return}const s=q.trim().toLowerCase();const arr=state.products.filter(p=>!s||p.name.toLowerCase().includes(s)).slice(0,40);box.innerHTML=arr.map(p=>`<div class="product-item" onclick="associate('${p.id}')"><b>${esc(p.name)}</b><span class="small">${p.category==='boisson'?'Boisson':'Sec'}</span></div>`).join('')||'<div class="product-item">Aucun resultat</div>'}
+function associate(id){if(!currentBarcode)return;barcodeMap[currentBarcode]=id;save();const p=productById(id);document.getElementById('barcodeResult').textContent='OK - Produit associe : '+p.name;showProduct(p)}
 
-function renderStock(q=''){const box=document.getElementById('stockResults');const s=q.trim().toLowerCase();const arr=state.products.filter(p=>!s||p.name.toLowerCase().includes(s)).slice(0,80);box.innerHTML=arr.map(p=>`<div class="product-item" onclick="openFromStock('${p.id}')"><b>${esc(p.name)}</b><span class="small">${p.category==='boisson'?'ðŸ¥¤ Boisson':'ðŸ« Sec'} Â· ${p.lots.reduce((a,l)=>a+(Number(l.qty)||0),0)} en ${p.category==='boisson'?'cave':'stock'}</span></div>`).join('')||'<div class="product-item">Aucun produit</div>'}
+function renderStock(q=''){const box=document.getElementById('stockResults');const s=q.trim().toLowerCase();const arr=state.products.filter(p=>!s||p.name.toLowerCase().includes(s)).slice(0,80);box.innerHTML=arr.map(p=>`<div class="product-item" onclick="openFromStock('${p.id}')"><b>${esc(p.name)}</b><span class="small">${p.category==='boisson'?'Boisson Boisson':'Sec Sec'} - ${p.lots.reduce((a,l)=>a+(Number(l.qty)||0),0)} en ${p.category==='boisson'?'cave':'stock'}</span></div>`).join('')||'<div class="product-item">Aucun produit</div>'}
 function openFromStock(id){switchTab('scan');showProduct(productById(id))}
-function renderExpiry(){const items=[];for(const p of state.products){for(const l of p.lots){const d=daysUntil(l.date);if(d!==null&&d<=30)items.push({p,l,d})}}items.sort((a,b)=>a.d-b.d);let expired=0,d7=0,d30=0;for(const x of items){if(x.d<0)expired++;else if(x.d<=7)d7++;else d30++}document.getElementById('expExpired').textContent=expired;document.getElementById('exp7').textContent=d7;document.getElementById('exp30').textContent=d30;document.getElementById('expiryList').innerHTML=items.length?items.map(x=>`<div class="expiry-item"><b>${esc(x.p.name)}</b><br><span class="${x.d<0?'expired':x.d<=7?'expired':'soon'}">${esc(x.l.date)} Â· ${x.d<0?Math.abs(x.d)+' j dÃ©passÃ©e':x.d+' j'}</span> Â· QtÃ© ${x.l.qty} Â· ${x.p.category==='boisson'?'cave':'stock global'}</div>`).join(''):'Aucune date valide dans les 30 prochains jours.'}
-function renderHistory(){const box=document.getElementById('historyList');box.innerHTML=state.movements.length?state.movements.map(m=>`<div class="expiry-item"><b>${esc(m.product)}</b><br>${esc(m.type)} Â· ${esc(m.date||'')} Â· ${m.qty>0?'+':''}${m.qty}<br><span class="small">${new Date(m.ts).toLocaleString('fr-BE')} ${m.note?'Â· '+esc(m.note):''}</span></div>`).join(''):'Aucun mouvement enregistrÃ©.'}
+function renderExpiry(){const items=[];for(const p of state.products){for(const l of p.lots){const d=daysUntil(l.date);if(d!==null&&d<=30)items.push({p,l,d})}}items.sort((a,b)=>a.d-b.d);let expired=0,d7=0,d30=0;for(const x of items){if(x.d<0)expired++;else if(x.d<=7)d7++;else d30++}document.getElementById('expExpired').textContent=expired;document.getElementById('exp7').textContent=d7;document.getElementById('exp30').textContent=d30;document.getElementById('expiryList').innerHTML=items.length?items.map(x=>`<div class="expiry-item"><b>${esc(x.p.name)}</b><br><span class="${x.d<0?'expired':x.d<=7?'expired':'soon'}">${esc(x.l.date)} - ${x.d<0?Math.abs(x.d)+' j depassee':x.d+' j'}</span> - Qte ${x.l.qty} - ${x.p.category==='boisson'?'cave':'stock global'}</div>`).join(''):'Aucune date valide dans les 30 prochains jours.'}
+function renderHistory(){const box=document.getElementById('historyList');box.innerHTML=state.movements.length?state.movements.map(m=>`<div class="expiry-item"><b>${esc(m.product)}</b><br>${esc(m.type)} - ${esc(m.date||'')} - ${m.qty>0?'+':''}${m.qty}<br><span class="small">${new Date(m.ts).toLocaleString('fr-BE')} ${m.note?'- '+esc(m.note):''}</span></div>`).join(''):'Aucun mouvement enregistre.'}
 function refreshAll(){document.getElementById('needImport').classList.toggle('hidden',!!state.products.length);renderStock(document.getElementById('stockSearch')?.value||'');renderExpiry();renderHistory();renderAssoc(document.getElementById('assocSearch')?.value||'');}
 function switchTab(name){document.querySelectorAll('main>section').forEach(s=>s.classList.add('hidden'));document.getElementById('tab-'+name).classList.remove('hidden');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('activeTab',b.dataset.tab===name));if(name!=='scan')stopScanner();if(name==='expiry')renderExpiry();if(name==='history')renderHistory()}
 
 document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
 document.getElementById('startScan').onclick=startScanner;document.getElementById('stopScan').onclick=stopScanner;document.getElementById('lookupBarcode').onclick=lookupBarcode;document.getElementById('barcodeInput').addEventListener('keydown',e=>{if(e.key==='Enter')lookupBarcode()});document.getElementById('assocSearch').addEventListener('input',e=>renderAssoc(e.target.value));document.getElementById('stockSearch').addEventListener('input',e=>renderStock(e.target.value));
-document.getElementById('importExcel').onclick=async()=>{const f=document.getElementById('excelFile').files[0];if(!f){alert('Choisis le fichier Excel.');return}if(state.products.length&&!confirm('Remplacer les donnÃ©es de test actuelles par le fichier Excel ?'))return;try{const n=await importWorkbook(f);document.getElementById('importMsg').textContent=`âœ… ${n} rÃ©fÃ©rences importÃ©es.`;switchTab('stock')}catch(e){document.getElementById('importMsg').textContent='Erreur import : '+e}}
+document.getElementById('importExcel').onclick=async()=>{const f=document.getElementById('excelFile').files[0];if(!f){alert('Choisis le fichier Excel.');return}if(state.products.length&&!confirm('Remplacer les donnees de test actuelles par le fichier Excel ?'))return;try{const n=await importWorkbook(f);document.getElementById('importMsg').textContent=`OK - ${n} references importees.`;switchTab('stock')}catch(e){document.getElementById('importMsg').textContent='Erreur import : '+e}}
 document.getElementById('downloadBackup').onclick=()=>{const blob=new Blob([JSON.stringify({state,barcodeMap,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='laudaflo-sauvegarde-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000)};
 document.getElementById('resetApp').onclick=()=>{if(confirm('Effacer tout le test local (inventaire, associations codes-barres et historique) ?')){localStorage.removeItem(STORE_KEY);localStorage.removeItem(BARCODE_KEY);state={products:[],movements:[],importedAt:null};barcodeMap={};location.reload()}};
 load();
