@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#17324d">
-<title>Laudaflo - Test V12</title>
+<title>Laudaflo - Test V13</title>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -39,7 +39,7 @@ nav button.active{color:#0b8d99;border-top:3px solid #0b8d99}
 </head>
 <body>
 
-<header>Laudaflo - Test V12</header>
+<header>Laudaflo - Test V13</header>
 
 <main>
 
@@ -633,6 +633,29 @@ function showScannedProduct(p){
       '</div>';
   }
 
+  html +=
+    '<div class="detail">' +
+      '<h3>Correction inventaire</h3>' +
+      '<div class="small">Utilise ceci apres un comptage physique. La correction sera ajoutee a l historique.</div>' +
+      '<select id="corrLot" style="width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px;margin:6px 0">' +
+        '<option value="">Choisir le lot a corriger</option>';
+
+  for(var k=0;k<p.lots.length;k++){
+    html +=
+      '<option value="' + k + '">' +
+        escapeHtml(p.lots[k].date || 'Sans date') +
+        ' - actuel ' +
+        escapeHtml(p.lots[k].qty) +
+      '</option>';
+  }
+
+  html +=
+      '</select>' +
+      '<input id="corrQty" type="number" min="0" inputmode="numeric" placeholder="Quantite reellement comptee">' +
+      '<button class="secondary" onclick="correctInventoryByKey(\'' + escapeJs(productKey(p)) + '\')">Enregistrer la correction</button>' +
+      '<div id="corrMsg" class="message"></div>' +
+    '</div>';
+
   card.innerHTML = html;
   card.classList.remove('hidden');
 }
@@ -716,6 +739,58 @@ function stockOutByKey(key){
 
   showScannedProduct(p);
   renderStock();
+}
+
+
+function correctInventoryByKey(key){
+  var p = findProductByKey(key);
+  var msg = document.getElementById('corrMsg');
+  var lotSelect = document.getElementById('corrLot');
+  var qtyInput = document.getElementById('corrQty');
+
+  if(!p || !lotSelect || !qtyInput){
+    return;
+  }
+
+  var index = Number(lotSelect.value);
+  var newQty = Number(qtyInput.value);
+
+  if(lotSelect.value === '' || !isFinite(index) || index < 0 || index >= p.lots.length){
+    msg.className = 'message error';
+    msg.textContent = 'Choisis le lot a corriger.';
+    return;
+  }
+
+  if(!isFinite(newQty) || newQty < 0){
+    msg.className = 'message error';
+    msg.textContent = 'Indique la quantite reellement comptee.';
+    return;
+  }
+
+  var lot = p.lots[index];
+  var oldQty = Number(lot.qty) || 0;
+  var diff = newQty - oldQty;
+  var lotDate = lot.date || '';
+
+  if(diff === 0){
+    msg.className = 'message ok';
+    msg.textContent = 'Aucun ecart : le stock est deja correct.';
+    return;
+  }
+
+  lot.qty = newQty;
+
+  if(newQty === 0){
+    p.lots.splice(index,1);
+  }
+
+  addHistory('Correction inventaire', p, lotDate, diff);
+  saveProducts();
+
+  showScannedProduct(p);
+  renderStock();
+  renderDates();
+  renderHistory();
 }
 
 function escapeJs(value){
