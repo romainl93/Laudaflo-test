@@ -4,9 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#17324d">
-<title>Laudaflo - Test V7</title>
+<title>Laudaflo - Test V8</title>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <style>
 *{box-sizing:border-box}
@@ -14,23 +15,30 @@ body{margin:0;font-family:Arial,sans-serif;background:#f1f5f9;color:#17324d}
 header{background:#17324d;color:#fff;padding:14px 16px;font-weight:700;font-size:22px}
 main{padding:14px 14px 90px;max-width:760px;margin:auto}
 .card{background:#fff;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px #0001}
-button,.buttonlike{width:100%;border:0;border-radius:12px;padding:14px 16px;margin:6px 0;background:#0b8d99;color:#fff;font-size:16px;font-weight:700}
+button{width:100%;border:0;border-radius:12px;padding:14px 16px;margin:6px 0;background:#0b8d99;color:#fff;font-size:16px;font-weight:700}
 .secondary{background:#dfe7ee;color:#17324d}
 input{width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px;margin:6px 0}
 .hidden{display:none!important}
 #reader{width:100%;overflow:hidden;border-radius:12px}
 .message{margin-top:10px;font-size:14px}
+.ok{color:#166534;font-weight:700}
+.error{color:#b91c1c;font-weight:700}
+.small{font-size:13px;color:#64748b}
+.product{padding:12px 4px;border-bottom:1px solid #dbe3ea}
+.product:last-child{border-bottom:0}
+.product b{display:block}
+.pill{display:inline-block;padding:3px 7px;border-radius:999px;background:#e2e8f0;font-size:12px;margin-top:4px}
 nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(3,1fr);background:#fff;border-top:1px solid #dbe3ea}
 nav button{margin:0;border-radius:0;background:#fff;color:#17324d;padding:14px 4px;font-size:13px}
 nav button.active{color:#0b8d99;border-top:3px solid #0b8d99}
-.small{font-size:13px;color:#64748b}
 </style>
 </head>
 <body>
 
-<header>Laudaflo - Test V7</header>
+<header>Laudaflo - Test V8</header>
 
 <main>
+
 <section id="tab-scan">
   <div class="card">
     <h2>Scanner</h2>
@@ -41,29 +49,31 @@ nav button.active{color:#0b8d99;border-top:3px solid #0b8d99}
   </div>
 
   <div class="card">
-    <h3>Code-barres</h3>
+    <h3>Dernier code lu</h3>
     <input id="barcode" inputmode="numeric" placeholder="Code-barres">
-    <button onclick="showBarcode()">Afficher le code</button>
     <div id="barcodeMsg" class="message"></div>
   </div>
 </section>
 
 <section id="tab-stock" class="hidden">
   <div class="card">
-    <h2>Stock</h2>
-    <p>Si tu vois cet ecran, le bouton Stock fonctionne.</p>
-    <p class="small">On ajoutera ton vrai inventaire seulement apres avoir valide cette etape.</p>
+    <h2>Stock importe</h2>
+    <input id="stockSearch" placeholder="Rechercher un produit..." oninput="renderStock()">
+    <div id="stockSummary" class="message"></div>
+    <div id="stockList"></div>
   </div>
 </section>
 
 <section id="tab-import" class="hidden">
   <div class="card">
     <h2>Import Excel</h2>
-    <p>Choisis simplement ton fichier Excel pour ce test.</p>
+    <p class="small">Choisis le fichier Inventaire Laudaflo.xlsx. Seules les feuilles Boissons et Sec sont lues.</p>
     <input id="excelFile" type="file" accept=".xlsx,.xls">
-    <div id="fileMsg" class="message"></div>
+    <button onclick="importExcel()">Importer Boissons + Sec</button>
+    <div id="importMsg" class="message"></div>
   </div>
 </section>
+
 </main>
 
 <nav>
@@ -75,6 +85,7 @@ nav button.active{color:#0b8d99;border-top:3px solid #0b8d99}
 <script>
 var scanner = null;
 var scannerActive = false;
+var products = [];
 
 function showTab(name){
   document.getElementById('tab-scan').classList.add('hidden');
@@ -90,6 +101,10 @@ function showTab(name){
 
   if(name !== 'scan'){
     stopScanner();
+  }
+
+  if(name === 'stock'){
+    renderStock();
   }
 }
 
@@ -157,15 +172,227 @@ async function stopScanner(){
   scannerActive = false;
 }
 
-function showBarcode(){
-  var code = document.getElementById('barcode').value.trim();
-  document.getElementById('barcodeMsg').textContent = code ? ('Code : ' + code) : 'Aucun code saisi.';
+function excelSerialToDate(value){
+  if(typeof value !== 'number' || typeof XLSX === 'undefined'){
+    return '';
+  }
+
+  var d = XLSX.SSF.parse_date_code(value);
+
+  if(!d || !d.y){
+    return '';
+  }
+
+  return String(d.d).padStart(2,'0') + '/' +
+         String(d.m).padStart(2,'0') + '/' +
+         String(d.y);
 }
 
-document.getElementById('excelFile').addEventListener('change', function(){
-  var f = this.files && this.files[0];
-  document.getElementById('fileMsg').textContent = f ? ('Fichier selectionne : ' + f.name) : '';
-});
+function normalizeDate(value){
+  if(value === null || value === undefined || value === '' || value === '/'){
+    return '';
+  }
+
+  if(typeof value === 'number'){
+    return excelSerialToDate(value);
+  }
+
+  return String(value).trim();
+}
+
+function normalizeQty(value){
+  if(value === null || value === undefined || value === ''){
+    return null;
+  }
+
+  if(typeof value === 'number' && isFinite(value)){
+    return value;
+  }
+
+  var n = Number(String(value).replace(',','.').trim());
+  return isFinite(n) ? n : null;
+}
+
+function addLot(lots, dateValue, qtyValue){
+  var date = normalizeDate(dateValue);
+  var qty = normalizeQty(qtyValue);
+
+  if(qty === null){
+    return;
+  }
+
+  if(qty === 0 && !date){
+    return;
+  }
+
+  lots.push({date:date, qty:qty});
+}
+
+async function importExcel(){
+  var msg = document.getElementById('importMsg');
+  var input = document.getElementById('excelFile');
+  var file = input.files && input.files[0];
+
+  if(!file){
+    msg.className = 'message error';
+    msg.textContent = 'Choisis d abord le fichier Excel.';
+    return;
+  }
+
+  if(typeof XLSX === 'undefined'){
+    msg.className = 'message error';
+    msg.textContent = 'La bibliotheque Excel ne s est pas chargee. Recharge la page.';
+    return;
+  }
+
+  msg.className = 'message';
+  msg.textContent = 'Import en cours...';
+
+  try{
+    var buffer = await file.arrayBuffer();
+    var wb = XLSX.read(buffer, {type:'array'});
+    var imported = [];
+
+    if(wb.Sheets['Boissons']){
+      var rowsB = XLSX.utils.sheet_to_json(wb.Sheets['Boissons'], {header:1, defval:null, raw:true});
+
+      for(var r=1; r<rowsB.length; r++){
+        var rowB = rowsB[r] || [];
+        var nameB = String(rowB[0] || '').trim();
+
+        if(!nameB){
+          continue;
+        }
+
+        var lotsB = [];
+        addLot(lotsB, rowB[3], rowB[4]);
+        addLot(lotsB, rowB[5], rowB[6]);
+        addLot(lotsB, rowB[7], rowB[8]);
+
+        imported.push({
+          type:'Boisson',
+          name:nameB,
+          shopDate:normalizeDate(rowB[1]),
+          shopQty:normalizeQty(rowB[2]),
+          lots:lotsB
+        });
+      }
+    }
+
+    if(wb.Sheets['Sec']){
+      var rowsS = XLSX.utils.sheet_to_json(wb.Sheets['Sec'], {header:1, defval:null, raw:true});
+
+      for(var s=1; s<rowsS.length; s++){
+        var rowS = rowsS[s] || [];
+        var nameS = String(rowS[0] || '').trim();
+
+        if(!nameS){
+          continue;
+        }
+
+        var lotsS = [];
+        addLot(lotsS, rowS[1], rowS[2]);
+        addLot(lotsS, rowS[3], rowS[4]);
+        addLot(lotsS, rowS[5], rowS[6]);
+        addLot(lotsS, rowS[7], rowS[8]);
+
+        imported.push({
+          type:'Sec',
+          name:nameS,
+          lots:lotsS
+        });
+      }
+    }
+
+    products = imported;
+
+    localStorage.setItem('laudaflo_v8_products', JSON.stringify(products));
+
+    var nbB = products.filter(function(p){return p.type === 'Boisson';}).length;
+    var nbS = products.filter(function(p){return p.type === 'Sec';}).length;
+
+    msg.className = 'message ok';
+    msg.textContent = 'Import reussi : ' + nbB + ' boissons et ' + nbS + ' produits secs.';
+
+    renderStock();
+  }catch(e){
+    msg.className = 'message error';
+    msg.textContent = 'Erreur import : ' + e.message;
+  }
+}
+
+function renderStock(){
+  var list = document.getElementById('stockList');
+  var summary = document.getElementById('stockSummary');
+  var search = (document.getElementById('stockSearch').value || '').toLowerCase().trim();
+
+  var filtered = products.filter(function(p){
+    return !search || p.name.toLowerCase().indexOf(search) >= 0;
+  });
+
+  summary.textContent = products.length
+    ? (products.length + ' references importees. ' + filtered.length + ' affichees.')
+    : 'Aucun inventaire importe pour le moment.';
+
+  list.innerHTML = '';
+
+  filtered.slice(0,100).forEach(function(p){
+    var total = 0;
+
+    p.lots.forEach(function(l){
+      total += Number(l.qty) || 0;
+    });
+
+    var div = document.createElement('div');
+    div.className = 'product';
+
+    var extra = '';
+
+    if(p.type === 'Boisson'){
+      extra = ' | Shop: ' + (p.shopQty === null ? '-' : p.shopQty) +
+              (p.shopDate ? ' (' + p.shopDate + ')' : '');
+    }
+
+    div.innerHTML =
+      '<b>' + escapeHtml(p.name) + '</b>' +
+      '<span class="pill">' + p.type + '</span>' +
+      '<div class="small">Stock suivi: ' + total + extra + '</div>' +
+      '<div class="small">' + lotsText(p.lots) + '</div>';
+
+    list.appendChild(div);
+  });
+}
+
+function lotsText(lots){
+  if(!lots || !lots.length){
+    return 'Aucun lot renseigne.';
+  }
+
+  return lots.map(function(l){
+    return (l.date || 'Sans date') + ': ' + l.qty;
+  }).join(' | ');
+}
+
+function escapeHtml(value){
+  return String(value || '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+}
+
+try{
+  var saved = localStorage.getItem('laudaflo_v8_products');
+
+  if(saved){
+    products = JSON.parse(saved) || [];
+  }
+}catch(e){
+  products = [];
+}
+
+renderStock();
 </script>
 
 </body>
