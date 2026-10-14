@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#17324d">
-<title>Laudaflo - Test V10</title>
+<title>Laudaflo - Test V11</title>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -32,14 +32,14 @@ input{width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:10px;font-s
 .assoc:last-child{border-bottom:0}
 .detail{margin-top:10px;padding:12px;background:#f8fafc;border-radius:12px}
 
-nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(3,1fr);background:#fff;border-top:1px solid #dbe3ea}
+nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border-top:1px solid #dbe3ea}
 nav button{margin:0;border-radius:0;background:#fff;color:#17324d;padding:14px 4px;font-size:13px}
 nav button.active{color:#0b8d99;border-top:3px solid #0b8d99}
 </style>
 </head>
 <body>
 
-<header>Laudaflo - Test V10</header>
+<header>Laudaflo - Test V11</header>
 
 <main>
 
@@ -78,6 +78,15 @@ nav button.active{color:#0b8d99;border-top:3px solid #0b8d99}
   </div>
 </section>
 
+
+<section id="tab-history" class="hidden">
+  <div class="card">
+    <h2>Historique des mouvements</h2>
+    <p class="small">Les livraisons et sorties cave vers frigo sont enregistrees sur ce telephone.</p>
+    <div id="historyList"></div>
+  </div>
+</section>
+
 <section id="tab-import" class="hidden">
   <div class="card">
     <h2>Import Excel</h2>
@@ -93,6 +102,7 @@ nav button.active{color:#0b8d99;border-top:3px solid #0b8d99}
 <nav>
   <button id="nav-scan" class="active" onclick="showTab('scan')">Scanner</button>
   <button id="nav-stock" onclick="showTab('stock')">Stock</button>
+  <button id="nav-history" onclick="showTab('history')">Historique</button>
   <button id="nav-import" onclick="showTab('import')">Import</button>
 </nav>
 
@@ -102,16 +112,19 @@ var scannerActive = false;
 var products = [];
 var barcodeMap = {};
 var currentBarcode = '';
+var movementHistory = [];
 
 function showTab(name){
   document.getElementById('tab-scan').classList.add('hidden');
   document.getElementById('tab-stock').classList.add('hidden');
+  document.getElementById('tab-history').classList.add('hidden');
   document.getElementById('tab-import').classList.add('hidden');
 
   document.getElementById('tab-' + name).classList.remove('hidden');
 
   document.getElementById('nav-scan').classList.remove('active');
   document.getElementById('nav-stock').classList.remove('active');
+  document.getElementById('nav-history').classList.remove('active');
   document.getElementById('nav-import').classList.remove('active');
   document.getElementById('nav-' + name).classList.add('active');
 
@@ -121,6 +134,10 @@ function showTab(name){
 
   if(name === 'stock'){
     renderStock();
+  }
+
+  if(name === 'history'){
+    renderHistory();
   }
 }
 
@@ -289,6 +306,66 @@ function associateProduct(index){
   showScannedProduct(p);
 }
 
+
+function saveHistory(){
+  try{
+    localStorage.setItem('laudaflo_v11_history', JSON.stringify(movementHistory));
+  }catch(e){}
+}
+
+function addHistory(type, p, date, qty){
+  movementHistory.unshift({
+    ts: new Date().toISOString(),
+    type: type,
+    product: p.name,
+    productType: p.type,
+    date: date || '',
+    qty: qty
+  });
+
+  if(movementHistory.length > 300){
+    movementHistory = movementHistory.slice(0,300);
+  }
+
+  saveHistory();
+}
+
+function renderHistory(){
+  var box = document.getElementById('historyList');
+
+  if(!box){
+    return;
+  }
+
+  if(!movementHistory.length){
+    box.innerHTML = '<div class="message">Aucun mouvement enregistre pour le moment.</div>';
+    return;
+  }
+
+  var html = '';
+
+  for(var i=0;i<movementHistory.length;i++){
+    var m = movementHistory[i];
+    var d = new Date(m.ts);
+    var when = d.toLocaleString('fr-BE');
+
+    html +=
+      '<div style="padding:10px 0;border-bottom:1px solid #dbe3ea">' +
+        '<b>' + escapeHtml(m.product) + '</b>' +
+        '<div class="small">' +
+          escapeHtml(m.type) +
+          ' | ' +
+          escapeHtml(m.date || 'Sans date') +
+          ' | ' +
+          (m.qty > 0 ? '+' : '') + escapeHtml(m.qty) +
+        '</div>' +
+        '<div class="small">' + escapeHtml(when) + '</div>' +
+      '</div>';
+  }
+
+  box.innerHTML = html;
+}
+
 function saveProducts(){
   try{
     localStorage.setItem('laudaflo_v8_products', JSON.stringify(products));
@@ -411,6 +488,7 @@ function receiveDeliveryByKey(key){
   }
 
   addOrIncreaseLot(p, date, qty);
+  addHistory('Livraison', p, date, qty);
   saveProducts();
 
   msg.className = 'message ok';
@@ -461,6 +539,7 @@ function stockOutByKey(key){
     p.lots.splice(index,1);
   }
 
+  addHistory('Cave vers frigo', p, lotDate, -qty);
   saveProducts();
 
   msg.className = 'message ok';
@@ -706,7 +785,18 @@ try{
   barcodeMap = {};
 }
 
+
+try{
+  var savedHistory = localStorage.getItem('laudaflo_v11_history');
+  if(savedHistory){
+    movementHistory = JSON.parse(savedHistory) || [];
+  }
+}catch(e){
+  movementHistory = [];
+}
+
 renderStock();
+renderHistory();
 </script>
 
 </body>
