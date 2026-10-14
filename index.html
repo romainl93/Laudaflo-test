@@ -2,267 +2,1252 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Laudaflo - Scanner</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b8d99">
+<title>Laudaflo - Inventaire mobile</title>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <style>
-body{
-  font-family:Arial,sans-serif;
-  background:#f1f5f9;
-  padding:16px;
-  color:#183047;
+:root{
+  --teal:#0b8d99;
+  --navy:#183047;
+  --bg:#f1f5f9;
+  --card:#fff;
+  --muted:#64748b;
+  --danger:#b91c1c;
+  --warn:#b45309;
+  --ok:#166534;
+  --line:#dbe3ea
 }
 
-h1{
-  text-align:center;
-  font-size:32px;
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:var(--bg);
+  color:var(--navy)
+}
+
+header{
+  position:sticky;
+  top:0;
+  z-index:10;
+  background:var(--navy);
+  color:white;
+  padding:14px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  box-shadow:0 2px 8px #0002
+}
+
+header h1{
+  font-size:22px;
+  margin:0
+}
+
+.badge{
+  background:#ffffff22;
+  border:1px solid #ffffff44;
+  border-radius:999px;
+  padding:6px 9px;
+  font-size:12px
+}
+
+main{
+  max-width:760px;
+  margin:auto;
+  padding:14px 14px 92px
 }
 
 .card{
-  background:white;
-  padding:18px;
+  background:var(--card);
   border-radius:16px;
-  margin-bottom:16px;
-}
-
-button{
-  width:100%;
   padding:16px;
-  margin-top:10px;
-  border:none;
-  border-radius:12px;
-  font-size:18px;
-  background:#0b8d99;
-  color:white;
+  margin-bottom:14px;
+  box-shadow:0 1px 4px #0001
 }
 
-input{
-  box-sizing:border-box;
-  width:100%;
-  padding:15px;
-  margin-top:10px;
-  font-size:17px;
-  border:1px solid #aaa;
+.hidden{
+  display:none!important
+}
+
+h2,h3{
+  margin:0 0 12px
+}
+
+.small{
+  font-size:13px;
+  color:var(--muted)
+}
+
+.notice{
+  background:#e0f2fe;
+  border-left:4px solid #0284c7;
+  padding:12px;
   border-radius:10px;
+  margin:10px 0
+}
+
+.warning{
+  background:#fff7ed;
+  border-left-color:#f97316
+}
+
+.danger{
+  background:#fef2f2;
+  border-left-color:#dc2626
+}
+
+button,.btn{
+  appearance:none;
+  border:0;
+  border-radius:12px;
+  background:var(--teal);
+  color:white;
+  font-weight:700;
+  font-size:16px;
+  padding:14px 16px;
+  width:100%;
+  margin:6px 0;
+  cursor:pointer
+}
+
+.secondary{
+  background:#e2e8f0;
+  color:var(--navy)
+}
+
+.dangerBtn{
+  background:#b91c1c
+}
+
+.ghost{
+  background:white;
+  color:var(--teal);
+  border:1px solid var(--teal)
+}
+
+input,select{
+  width:100%;
+  padding:13px;
+  border:1px solid #cbd5e1;
+  border-radius:10px;
+  font-size:16px;
+  background:white;
+  margin:5px 0 10px
+}
+
+.row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px
+}
+
+.row3{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:8px
 }
 
 #reader{
   width:100%;
+  overflow:hidden;
+  border-radius:12px
 }
 
-#resultat{
-  font-weight:bold;
-  font-size:18px;
-  margin-top:15px;
+.result{
+  font-weight:700;
+  font-size:17px;
+  margin-top:10px
 }
 
-#message{
-  margin-top:12px;
+.product-list{
+  max-height:330px;
+  overflow:auto;
+  border:1px solid var(--line);
+  border-radius:10px
+}
+
+.product-item{
+  padding:12px;
+  border-bottom:1px solid var(--line);
+  cursor:pointer
+}
+
+.product-item:last-child{
+  border-bottom:0
+}
+
+.product-item b{
+  display:block
+}
+
+.pill{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:12px;
+  background:#e2e8f0;
+  margin-right:4px
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px
+}
+
+th,td{
+  text-align:left;
+  padding:9px 6px;
+  border-bottom:1px solid var(--line)
+}
+
+th{
+  font-size:12px;
+  text-transform:uppercase;
+  color:var(--muted)
+}
+
+.qty{
+  text-align:right;
+  font-weight:700
+}
+
+.expired{
+  color:var(--danger);
+  font-weight:700
+}
+
+.soon{
+  color:var(--warn);
+  font-weight:700
+}
+
+.ok{
+  color:var(--ok)
+}
+
+nav{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:white;
+  border-top:1px solid var(--line);
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  z-index:20;
+  padding-bottom:max(4px,env(safe-area-inset-bottom))
+}
+
+nav button{
+  background:white;
+  color:var(--navy);
+  font-size:11px;
+  margin:0;
+  border-radius:0;
+  padding:10px 2px
+}
+
+nav button span{
+  display:block;
+  font-size:22px;
+  margin-bottom:3px
+}
+
+.activeTab{
+  color:var(--teal)!important
+}
+
+.statgrid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px
+}
+
+.stat{
+  background:#f8fafc;
+  border:1px solid var(--line);
+  padding:10px;
+  border-radius:12px;
+  text-align:center
+}
+
+.stat b{
+  font-size:20px;
+  display:block
+}
+
+.expiry-item{
+  padding:10px;
+  border-bottom:1px solid var(--line)
+}
+
+.expiry-item:last-child{
+  border-bottom:0
+}
+
+@media(max-width:420px){
+  .row,.row3{
+    grid-template-columns:1fr
+  }
+
+  .statgrid{
+    grid-template-columns:1fr 1fr 1fr
+  }
 }
 </style>
 </head>
 
 <body>
 
-<h1>📦 Laudaflo</h1>
+<header>
+  <h1>📦 Laudaflo</h1>
+  <span class="badge" id="saveStatus">Mode test local</span>
+</header>
 
-<div class="card">
-  <h2>📷 Scanner un produit</h2>
+<main>
 
-  <div id="reader"></div>
+<section id="tab-scan">
 
-  <button onclick="demarrerScanner()">Démarrer le scanner</button>
-  <button onclick="arreterScanner()">Arrêter le scanner</button>
+  <div id="needImport" class="notice warning hidden">
+    <b>Inventaire non chargé.</b><br>
+    Va dans « Import » et choisis le fichier Excel de la station.
+    Le fichier est lu uniquement sur ce téléphone.
+  </div>
 
-  <p id="message"></p>
-</div>
+  <div class="card">
+    <h2>📷 Scanner un produit</h2>
 
-<div class="card">
-  <h2>Code-barres</h2>
+    <div id="reader"></div>
 
-  <input
-    id="code"
-    inputmode="numeric"
-    placeholder="Numéro du code-barres">
+    <button id="startScan">
+      Démarrer le scanner
+    </button>
 
-  <button onclick="rechercher()">Rechercher le produit</button>
+    <button id="stopScan" class="secondary">
+      Arrêter le scanner
+    </button>
 
-  <p id="resultat"></p>
-</div>
+    <div id="scanMsg" class="small"></div>
+  </div>
 
-<div class="card" id="association" style="display:none">
+  <div class="card">
+    <h3>Code-barres</h3>
 
-  <h2>Associer ce code</h2>
+    <input
+      id="barcodeInput"
+      inputmode="numeric"
+      placeholder="Code-barres">
 
-  <input
-    id="produit"
-    placeholder="Ex. Coca-Cola 33 cl">
+    <button id="lookupBarcode">
+      Rechercher
+    </button>
 
-  <button onclick="enregistrer()">
-    Enregistrer le produit
-  </button>
+    <div id="barcodeResult" class="result"></div>
+  </div>
 
-</div>
+  <div id="associateCard" class="card hidden">
+    <h3>Associer ce code à une référence</h3>
+
+    <p class="small">
+      Cette association ne sera à faire qu'une seule fois sur ce téléphone.
+    </p>
+
+    <input
+      id="assocSearch"
+      placeholder="Ex. Nutroma, Coca, Red Bull…">
+
+    <div id="assocResults" class="product-list"></div>
+  </div>
+
+  <div id="productCard" class="card hidden"></div>
+
+</section>
+
+<section id="tab-stock" class="hidden">
+
+  <div class="card">
+    <h2>🔎 Stock</h2>
+
+    <input
+      id="stockSearch"
+      placeholder="Rechercher un produit…">
+
+    <div id="stockResults" class="product-list"></div>
+  </div>
+
+</section>
+
+<section id="tab-expiry" class="hidden">
+
+  <div class="card">
+    <h2>📅 Péremptions</h2>
+
+    <div class="statgrid">
+
+      <div class="stat">
+        <b id="expExpired">0</b>
+        <span>dépassées</span>
+      </div>
+
+      <div class="stat">
+        <b id="exp7">0</b>
+        <span>≤ 7 j</span>
+      </div>
+
+      <div class="stat">
+        <b id="exp30">0</b>
+        <span>≤ 30 j</span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="card">
+    <div id="expiryList"></div>
+  </div>
+
+</section>
+
+<section id="tab-history" class="hidden">
+
+  <div class="card">
+    <h2>🧾 Historique</h2>
+    <div id="historyList"></div>
+  </div>
+
+</section>
+
+<section id="tab-import" class="hidden">
+
+  <div class="card">
+
+    <h2>📥 Importer l'inventaire Excel</h2>
+
+    <div class="notice">
+      <b>Confidentialité :</b>
+      le fichier est lu directement dans Chrome.
+      Cette application de test ne l'envoie pas à GitHub ni à un serveur.
+    </div>
+
+    <input
+      id="excelFile"
+      type="file"
+      accept=".xlsx,.xls">
+
+    <button id="importExcel">
+      Importer Boissons + Sec
+    </button>
+
+    <div id="importMsg" class="result"></div>
+
+  </div>
+
+  <div class="card">
+
+    <h3>Sauvegarde du test</h3>
+
+    <p class="small">
+      Les changements sont gardés dans Chrome sur ce téléphone.
+      Fais une sauvegarde avant d'effacer les données du navigateur.
+    </p>
+
+    <button id="downloadBackup" class="ghost">
+      Télécharger une sauvegarde JSON
+    </button>
+
+    <button id="resetApp" class="dangerBtn">
+      Réinitialiser les données de test
+    </button>
+
+  </div>
+
+</section>
+
+</main>
+
+<nav>
+
+<button data-tab="scan" class="activeTab">
+  <span>📷</span>
+  Scanner
+</button>
+
+<button data-tab="stock">
+  <span>📦</span>
+  Stock
+</button>
+
+<button data-tab="expiry">
+  <span>📅</span>
+  Dates
+</button>
+
+<button data-tab="history">
+  <span>🧾</span>
+  Historique
+</button>
+
+<button data-tab="import">
+  <span>⬆️</span>
+  Import
+</button>
+
+</nav>
 
 <script>
 
-let scanner = null;
-let scannerActif = false;
-let dernierCode = "";
+const STORE_KEY='laudaflo_test_state_v3';
+const BARCODE_KEY='laudaflo_test_barcodes_v3';
 
-async function demarrerScanner(){
+let state={
+  products:[],
+  movements:[],
+  importedAt:null
+};
 
-  const message =
-    document.getElementById("message");
+let barcodeMap={};
+
+let scanner=null;
+let scannerActive=false;
+let currentBarcode='';
+
+
+function load(){
 
   try{
+    state=
+      JSON.parse(
+        localStorage.getItem(STORE_KEY)
+      ) || state;
+  }catch(e){}
 
-    if(scannerActif){
-      return;
+  try{
+    barcodeMap=
+      JSON.parse(
+        localStorage.getItem(BARCODE_KEY)
+      ) || {};
+  }catch(e){}
+
+  refreshAll();
+}
+
+
+function save(){
+
+  localStorage.setItem(
+    STORE_KEY,
+    JSON.stringify(state)
+  );
+
+  localStorage.setItem(
+    BARCODE_KEY,
+    JSON.stringify(barcodeMap)
+  );
+
+  document.getElementById(
+    'saveStatus'
+  ).textContent=
+    'Enregistré sur ce téléphone';
+}
+
+
+function uid(){
+
+  return Math.random()
+    .toString(36)
+    .slice(2)
+    +
+    Date.now()
+    .toString(36);
+
+}
+
+
+function esc(s){
+
+  return String(s??'')
+    .replace(
+      /[&<>"']/g,
+      m=>({
+        '&':'&amp;',
+        '<':'&lt;',
+        '>':'&gt;',
+        '"':'&quot;',
+        "'":'&#039;'
+      }[m])
+    );
+
+}
+
+
+function qtyNum(v){
+
+  if(
+    typeof v==='number'
+    &&
+    isFinite(v)
+  ){
+    return v;
+  }
+
+  const s=
+    String(v??'')
+    .trim()
+    .replace(',','.');
+
+  if(
+    /^[-+]?\d+(\.\d+)?$/
+    .test(s)
+  ){
+    return Number(s);
+  }
+
+  return null;
+}
+
+
+function excelDate(v){
+
+  if(
+    v===null
+    ||
+    v===undefined
+    ||
+    v===''
+    ||
+    v==='/'
+  ){
+    return '';
+  }
+
+  if(typeof v==='number'){
+
+    const d=
+      XLSX.SSF.parse_date_code(v);
+
+    if(d&&d.y){
+
+      return `${String(d.d).padStart(2,'0')}/${String(d.m).padStart(2,'0')}/${d.y}`;
+
     }
 
-    scanner =
-      new Html5Qrcode("reader");
+  }
 
-    const cameras =
-      await Html5Qrcode.getCameras();
+  const s=String(v).trim();
 
-    if(!cameras || cameras.length === 0){
-      message.textContent =
-        "Aucune caméra détectée.";
-      return;
+  const m=
+    s.match(
+      /^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})$/
+    );
+
+  if(m){
+
+    let y=Number(m[3]);
+
+    if(y<100){
+      y+=2000;
     }
 
-    let cameraId = cameras[0].id;
+    return `${String(m[1]).padStart(2,'0')}/${String(m[2]).padStart(2,'0')}/${y}`;
 
-    if(cameras.length > 1){
-      cameraId =
-        cameras[cameras.length - 1].id;
-    }
+  }
 
-    await scanner.start(
-      cameraId,
-      {
-        fps: 10,
-        qrbox: {
-          width: 280,
-          height: 140
+  return s;
+}
+
+
+function dateToObj(s){
+
+  const m=
+    String(s||'')
+    .match(
+      /^(\d{2})\/(\d{2})\/(\d{4})$/
+    );
+
+  if(!m){
+    return null;
+  }
+
+  const d=
+    new Date(
+      Number(m[3]),
+      Number(m[2])-1,
+      Number(m[1])
+    );
+
+  if(
+    d.getFullYear()!=Number(m[3])
+    ||
+    d.getMonth()!=Number(m[2])-1
+    ||
+    d.getDate()!=Number(m[1])
+  ){
+    return null;
+  }
+
+  d.setHours(0,0,0,0);
+
+  return d;
+}
+
+
+function daysUntil(s){
+
+  const d=dateToObj(s);
+
+  if(!d){
+    return null;
+  }
+
+  const t=new Date();
+
+  t.setHours(0,0,0,0);
+
+  return Math.round(
+    (d-t)/86400000
+  );
+
+}
+
+
+function productById(id){
+
+  return state.products.find(
+    p=>p.id===id
+  );
+
+}
+
+
+function findBarcodeProduct(code){
+
+  const id=
+    barcodeMap[code];
+
+  return id
+    ?
+    productById(id)
+    :
+    null;
+
+}
+
+
+function formatQty(v){
+
+  return (
+    v===null
+    ||
+    v===undefined
+    ||
+    v===''
+  )
+  ?
+  '—'
+  :
+  String(v);
+
+}
+
+
+async function importWorkbook(file){
+
+  const data=
+    await file.arrayBuffer();
+
+  const wb=
+    XLSX.read(
+      data,
+      {type:'array'}
+    );
+
+  const products=[];
+
+
+  if(wb.Sheets['Boissons']){
+
+    const rows=
+      XLSX.utils.sheet_to_json(
+        wb.Sheets['Boissons'],
+        {
+          header:1,
+          defval:null,
+          raw:true
         }
-      },
-      codeDetecte,
-      () => {}
+      );
+
+    for(
+      let r=1;
+      r<rows.length;
+      r++
+    ){
+
+      const a=rows[r];
+
+      const name=
+        String(a[0]??'')
+        .trim();
+
+      if(!name){
+        continue;
+      }
+
+      const shopDate=
+        excelDate(a[1]);
+
+      const shopRaw=
+        a[2];
+
+      const shopQty=
+        qtyNum(shopRaw);
+
+      const lots=[];
+
+      for(
+        const [dc,qc]
+        of
+        [[3,4],[5,6],[7,8]]
+      ){
+
+        const date=
+          excelDate(a[dc]);
+
+        const q=
+          qtyNum(a[qc]);
+
+        if(
+          date
+          ||
+          q!==null
+        ){
+
+          if(
+            q!==null
+            &&
+            q!==0
+          ){
+
+            lots.push({
+              id:uid(),
+              date,
+              qty:q
+            });
+
+          }
+
+        }
+
+      }
+
+      products.push({
+        id:'boisson_'+r,
+        name,
+        category:'boisson',
+        shop:{
+          date:shopDate,
+          qty:shopQty,
+          raw:
+            shopQty===null
+            ?
+            String(shopRaw??'')
+            :
+            null
+        },
+        lots
+      });
+
+    }
+
+  }
+
+
+  if(wb.Sheets['Sec']){
+
+    const rows=
+      XLSX.utils.sheet_to_json(
+        wb.Sheets['Sec'],
+        {
+          header:1,
+          defval:null,
+          raw:true
+        }
+      );
+
+    for(
+      let r=1;
+      r<rows.length;
+      r++
+    ){
+
+      const a=rows[r];
+
+      const name=
+        String(a[0]??'')
+        .trim();
+
+      if(!name){
+        continue;
+      }
+
+      const lots=[];
+
+      for(
+        const [dc,qc]
+        of
+        [[1,2],[3,4],[5,6],[7,8]]
+      ){
+
+        const date=
+          excelDate(a[dc]);
+
+        const q=
+          qtyNum(a[qc]);
+
+        if(
+          date
+          ||
+          q!==null
+        ){
+
+          if(
+            q!==null
+            &&
+            q!==0
+          ){
+
+            lots.push({
+              id:uid(),
+              date,
+              qty:q
+            });
+
+          }
+
+        }
+
+      }
+
+      products.push({
+        id:'sec_'+r,
+        name,
+        category:'sec',
+        lots
+      });
+
+    }
+
+  }
+
+  state={
+    products,
+    movements:[],
+    importedAt:
+      new Date().toISOString()
+  };
+
+  save();
+  refreshAll();
+
+  return products.length;
+}
+
+
+function addMovement(
+  product,
+  type,
+  date,
+  qty,
+  note=''
+){
+
+  state.movements.unshift({
+    id:uid(),
+    ts:new Date().toISOString(),
+    productId:product.id,
+    product:product.name,
+    type,
+    date,
+    qty,
+    note
+  });
+
+  state.movements=
+    state.movements.slice(0,500);
+
+  save();
+}
+
+
+function addLot(
+  product,
+  date,
+  qty
+){
+
+  let lot=
+    product.lots.find(
+      l=>l.date===date
     );
 
-    scannerActif = true;
+  if(lot){
 
-    message.textContent =
-      "Caméra activée. Place le code-barres dans le cadre.";
-
-  }catch(e){
-
-    message.textContent =
-      "Erreur caméra : " + e;
-
-  }
-
-}
-
-function codeDetecte(code){
-
-  document.getElementById("code").value =
-    code;
-
-  dernierCode = code;
-
-  rechercher();
-
-  arreterScanner();
-
-}
-
-async function arreterScanner(){
-
-  if(scanner && scannerActif){
-
-    try{
-      await scanner.stop();
-      await scanner.clear();
-    }catch(e){}
-
-  }
-
-  scannerActif = false;
-
-}
-
-function rechercher(){
-
-  const code =
-    document.getElementById("code")
-    .value.trim();
-
-  if(!code){
-    return;
-  }
-
-  dernierCode = code;
-
-  const nom =
-    localStorage.getItem(
-      "produit_" + code
-    );
-
-  const resultat =
-    document.getElementById("resultat");
-
-  const association =
-    document.getElementById("association");
-
-  if(nom){
-
-    resultat.textContent =
-      "✅ Produit reconnu : " + nom;
-
-    association.style.display =
-      "none";
+    lot.qty+=qty;
 
   }else{
 
-    resultat.textContent =
-      "⚠️ Code inconnu : " + code;
-
-    association.style.display =
-      "block";
+    product.lots.push({
+      id:uid(),
+      date,
+      qty
+    });
 
   }
 
+  product.lots=
+    product.lots.filter(
+      l=>l.qty!==0
+    );
+
 }
 
-function enregistrer(){
 
-  const nom =
-    document.getElementById("produit")
-    .value.trim();
+function reduceLot(
+  product,
+  lotId,
+  qty
+){
 
-  if(!nom || !dernierCode){
-    return;
+  const lot=
+    product.lots.find(
+      l=>l.id===lotId
+    );
+
+  if(
+    !lot
+    ||
+    qty<=0
+    ||
+    qty>lot.qty
+  ){
+    return false;
   }
 
-  localStorage.setItem(
-    "produit_" + dernierCode,
-    nom
-  );
+  lot.qty-=qty;
 
-  document.getElementById("produit").value =
-    "";
+  product.lots=
+    product.lots.filter(
+      l=>l.qty>0
+    );
 
-  rechercher();
-
+  return true;
 }
 
-</script>
 
-</body>
-</html>
+function renderProduct(p){
+
+  const barcode=
+    Object.keys(barcodeMap)
+    .find(
+      k=>barcodeMap[k]===p.id
+    )
+    ||
+    '';
+
+  const total=
+    p.lots.reduce(
+      (s,l)=>
+        s+(Number(l.qty)||0),
+      0
+    );
+
+  const rows=
+    [...p.lots]
+    .sort(
+      (a,b)=>{
+
+        const da=
+          dateToObj(a.date);
+
+        const db=
+          dateToObj(b.date);
+
+        return da&&db
+          ?
+          da-db
+          :
+          a.date.localeCompare(b.date);
+
+      }
+    )
+    .map(
+      l=>{
+
+        const d=
+          daysUntil(l.date);
+
+        const cls=
+          d===null
+          ?
+          ''
+          :
+          d<0
+          ?
+          'expired'
+          :
+          d<=30
+          ?
+          'soon'
+          :
+          'ok';
+
+        return `
+          <tr>
+            <td class="${cls}">
+              ${esc(l.date||'Sans date')}
+            </td>
+
+            <td class="qty">
+              ${esc(formatQty(l.qty))}
+            </td>
+          </tr>
+        `;
+
+      }
+    )
+    .join('')
+    ||
+    '<tr><td colspan="2">Aucun lot enregistré</td></tr>';
+
+
+  const shop=
+    p.category==='boisson'
+    ?
+    `
+    <div class="notice">
+
+      <b>Frigo / shop :</b>
+
+      date
+      ${esc(
+        p.shop?.date
+        ||
+        '—'
+      )}
+
+      · quantité
+      ${esc(
+        p.shop?.raw
+        ||
+        formatQty(
+          p.shop?.qty
+        )
+      )}
+
+      <br>
+
+      <span class="small">
+        La quantité frigo reste indicative dans ce test.
+      </span>
+
+    </div>
+    `
+    :
+    '';
+
+
+  return `
+
+    <h2>
+      ${esc(p.name)}
+    </h2>
+
+    <p>
+
+      <span class="pill">
+
+        ${
+          p.category==='boisson'
+          ?
+          '🥤 Boisson'
+          :
+          '🍫 Sec'
+        }
+
+      </span>
+
+      ${
+        barcode
+        ?
+        `<span class="pill">📷 ${esc(barcode)}</span>`
+        :
+        ''
+      }
+
+    </p>
+
+    ${shop}
+
+    <h3>
+
+      ${
+        p.category==='boisson'
+        ?
+        'Cave'
+        :
+        'Stock global'
+      }
+
+      <span class="small">
+        Total : ${total}
+      </span>
+
+    </h3>
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th class="qty">Quantité</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        ${rows}
+      </tbody>
+
+    </table>
+
+    <hr style="
+      border:0;
+      border-top:1px solid var(--line);
+      margin:16px 0
+    ">
+
+    <h3>➕ Livraison</h3>
+
+    <div class="row">
+
+      <input
+        id="deliveryDate"
+        type="date">
+
+      <input
+        id="deliveryQty"
+        type="number"
+        min="1"
+        inputmode="numeric"
+        placeholder="Quantité">
+
+    </div>
+
+    <button onclick="receiveDelivery('${p.id}')">
+      Ajouter la livraison
+    </
