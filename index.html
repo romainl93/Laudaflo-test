@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#17324d">
-<title>Laudaflo - Test V9</title>
+<title>Laudaflo - Test V10</title>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -39,7 +39,7 @@ nav button.active{color:#0b8d99;border-top:3px solid #0b8d99}
 </head>
 <body>
 
-<header>Laudaflo - Test V9</header>
+<header>Laudaflo - Test V10</header>
 
 <main>
 
@@ -289,6 +289,43 @@ function associateProduct(index){
   showScannedProduct(p);
 }
 
+function saveProducts(){
+  try{
+    localStorage.setItem('laudaflo_v8_products', JSON.stringify(products));
+  }catch(e){}
+}
+
+function htmlDateToDisplay(value){
+  if(!value){
+    return '';
+  }
+
+  var parts = value.split('-');
+
+  if(parts.length !== 3){
+    return value;
+  }
+
+  return parts[2] + '/' + parts[1] + '/' + parts[0];
+}
+
+function addOrIncreaseLot(p, date, qty){
+  var found = null;
+
+  for(var i=0;i<p.lots.length;i++){
+    if((p.lots[i].date || '') === date){
+      found = p.lots[i];
+      break;
+    }
+  }
+
+  if(found){
+    found.qty = (Number(found.qty) || 0) + qty;
+  }else{
+    p.lots.push({date:date, qty:qty});
+  }
+}
+
 function showScannedProduct(p){
   var card = document.getElementById('scanProductCard');
   var total = 0;
@@ -312,8 +349,131 @@ function showScannedProduct(p){
 
   html += '<br><br><b>Dates :</b><br>' + escapeHtml(lotsText(p.lots)) + '</div>';
 
+  html +=
+    '<div class="detail">' +
+      '<h3>Livraison</h3>' +
+      '<div class="small">La quantite sera ajoutee au stock ' +
+        (p.type === 'Boisson' ? 'de la cave.' : 'global.') +
+      '</div>' +
+      '<input id="deliveryDate" type="date">' +
+      '<input id="deliveryQty" type="number" min="1" inputmode="numeric" placeholder="Quantite recue">' +
+      '<button onclick="receiveDeliveryByKey(\'' + escapeJs(productKey(p)) + '\')">Ajouter la livraison</button>' +
+      '<div id="deliveryMsg" class="message"></div>' +
+    '</div>';
+
+  if(p.type === 'Boisson'){
+    html +=
+      '<div class="detail">' +
+        '<h3>Sortie cave vers frigo</h3>' +
+        '<div class="small">Choisis la date du lot que tu remontes.</div>' +
+        '<select id="outLot" style="width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px;margin:6px 0">' +
+          '<option value="">Choisir un lot</option>';
+
+    for(var j=0;j<p.lots.length;j++){
+      html +=
+        '<option value="' + j + '">' +
+          escapeHtml(p.lots[j].date || 'Sans date') +
+          ' - ' +
+          escapeHtml(p.lots[j].qty) +
+        '</option>';
+    }
+
+    html +=
+        '</select>' +
+        '<input id="outQty" type="number" min="1" inputmode="numeric" placeholder="Quantite remontee">' +
+        '<button onclick="stockOutByKey(\'' + escapeJs(productKey(p)) + '\')">Deduire de la cave</button>' +
+        '<div id="outMsg" class="message"></div>' +
+        '<div class="small">Pour ce test, la quantite du frigo n est pas recalculee, car les ventes ne sont pas connectees a l application.</div>' +
+      '</div>';
+  }
+
   card.innerHTML = html;
   card.classList.remove('hidden');
+}
+
+function receiveDeliveryByKey(key){
+  var p = findProductByKey(key);
+  var msg = document.getElementById('deliveryMsg');
+  var dateInput = document.getElementById('deliveryDate');
+  var qtyInput = document.getElementById('deliveryQty');
+
+  if(!p || !dateInput || !qtyInput){
+    return;
+  }
+
+  var date = htmlDateToDisplay(dateInput.value);
+  var qty = Number(qtyInput.value);
+
+  if(!date || !isFinite(qty) || qty <= 0){
+    msg.className = 'message error';
+    msg.textContent = 'Indique une date et une quantite superieure a 0.';
+    return;
+  }
+
+  addOrIncreaseLot(p, date, qty);
+  saveProducts();
+
+  msg.className = 'message ok';
+  msg.textContent = 'Livraison ajoutee : +' + qty + ' au ' + date + '.';
+
+  showScannedProduct(p);
+  renderStock();
+}
+
+function stockOutByKey(key){
+  var p = findProductByKey(key);
+  var msg = document.getElementById('outMsg');
+  var lotSelect = document.getElementById('outLot');
+  var qtyInput = document.getElementById('outQty');
+
+  if(!p || p.type !== 'Boisson' || !lotSelect || !qtyInput){
+    return;
+  }
+
+  var index = Number(lotSelect.value);
+  var qty = Number(qtyInput.value);
+
+  if(lotSelect.value === '' || !isFinite(index) || index < 0 || index >= p.lots.length){
+    msg.className = 'message error';
+    msg.textContent = 'Choisis le lot a sortir.';
+    return;
+  }
+
+  if(!isFinite(qty) || qty <= 0){
+    msg.className = 'message error';
+    msg.textContent = 'Indique une quantite superieure a 0.';
+    return;
+  }
+
+  var lot = p.lots[index];
+  var available = Number(lot.qty) || 0;
+
+  if(qty > available){
+    msg.className = 'message error';
+    msg.textContent = 'Stock insuffisant sur ce lot : ' + available + ' disponible(s).';
+    return;
+  }
+
+  var lotDate = lot.date || '';
+  lot.qty = available - qty;
+
+  if(lot.qty <= 0){
+    p.lots.splice(index,1);
+  }
+
+  saveProducts();
+
+  msg.className = 'message ok';
+  msg.textContent = 'Sortie enregistree : -' + qty + ' du lot ' + lotDate + '.';
+
+  showScannedProduct(p);
+  renderStock();
+}
+
+function escapeJs(value){
+  return String(value || '')
+    .replace(/\\/g,'\\\\')
+    .replace(/'/g,"\\'");
 }
 
 
