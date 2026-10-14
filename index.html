@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#17324d">
-<title>Laudaflo - Test V8</title>
+<title>Laudaflo - Test V9</title>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -28,6 +28,10 @@ input{width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:10px;font-s
 .product:last-child{border-bottom:0}
 .product b{display:block}
 .pill{display:inline-block;padding:3px 7px;border-radius:999px;background:#e2e8f0;font-size:12px;margin-top:4px}
+.assoc{padding:10px 4px;border-bottom:1px solid #dbe3ea;cursor:pointer}
+.assoc:last-child{border-bottom:0}
+.detail{margin-top:10px;padding:12px;background:#f8fafc;border-radius:12px}
+
 nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(3,1fr);background:#fff;border-top:1px solid #dbe3ea}
 nav button{margin:0;border-radius:0;background:#fff;color:#17324d;padding:14px 4px;font-size:13px}
 nav button.active{color:#0b8d99;border-top:3px solid #0b8d99}
@@ -35,7 +39,7 @@ nav button.active{color:#0b8d99;border-top:3px solid #0b8d99}
 </head>
 <body>
 
-<header>Laudaflo - Test V8</header>
+<header>Laudaflo - Test V9</header>
 
 <main>
 
@@ -51,8 +55,18 @@ nav button.active{color:#0b8d99;border-top:3px solid #0b8d99}
   <div class="card">
     <h3>Dernier code lu</h3>
     <input id="barcode" inputmode="numeric" placeholder="Code-barres">
+    <button onclick="lookupBarcode()">Rechercher ce code</button>
     <div id="barcodeMsg" class="message"></div>
   </div>
+
+  <div id="associateCard" class="card hidden">
+    <h3>Associer le code a un produit</h3>
+    <p class="small">A faire une seule fois pour ce code-barres sur ce telephone.</p>
+    <input id="assocSearch" placeholder="Rechercher le produit..." oninput="renderAssoc()">
+    <div id="assocList"></div>
+  </div>
+
+  <div id="scanProductCard" class="card hidden"></div>
 </section>
 
 <section id="tab-stock" class="hidden">
@@ -86,6 +100,8 @@ nav button.active{color:#0b8d99;border-top:3px solid #0b8d99}
 var scanner = null;
 var scannerActive = false;
 var products = [];
+var barcodeMap = {};
+var currentBarcode = '';
 
 function showTab(name){
   document.getElementById('tab-scan').classList.add('hidden');
@@ -149,8 +165,9 @@ async function startScanner(){
       {fps:10, qrbox:{width:280,height:130}},
       function(decodedText){
         document.getElementById('barcode').value = decodedText;
-        document.getElementById('barcodeMsg').textContent = 'Code lu : ' + decodedText;
+        currentBarcode = decodedText;
         stopScanner();
+        lookupBarcode();
       },
       function(){}
     );
@@ -171,6 +188,134 @@ async function stopScanner(){
   }
   scannerActive = false;
 }
+
+
+function productKey(p){
+  return p.type + '|' + p.name;
+}
+
+function findProductByKey(key){
+  for(var i=0;i<products.length;i++){
+    if(productKey(products[i]) === key){
+      return products[i];
+    }
+  }
+  return null;
+}
+
+function lookupBarcode(){
+  var code = (document.getElementById('barcode').value || '').trim();
+  var msg = document.getElementById('barcodeMsg');
+  var assoc = document.getElementById('associateCard');
+  var card = document.getElementById('scanProductCard');
+
+  if(!code){
+    msg.textContent = 'Aucun code-barres saisi.';
+    return;
+  }
+
+  currentBarcode = code;
+
+  var key = barcodeMap[code];
+  var p = key ? findProductByKey(key) : null;
+
+  if(p){
+    msg.className = 'message ok';
+    msg.textContent = 'Produit reconnu : ' + p.name;
+    assoc.classList.add('hidden');
+    showScannedProduct(p);
+  }else{
+    msg.className = 'message';
+    msg.textContent = 'Code inconnu : ' + code;
+    card.classList.add('hidden');
+    assoc.classList.remove('hidden');
+    document.getElementById('assocSearch').value = '';
+    renderAssoc();
+  }
+}
+
+function renderAssoc(){
+  var box = document.getElementById('assocList');
+  var search = (document.getElementById('assocSearch').value || '').toLowerCase().trim();
+
+  if(!products.length){
+    box.innerHTML = '<div class="message">Importe d abord ton fichier Excel.</div>';
+    return;
+  }
+
+  var matches = [];
+  for(var i=0;i<products.length;i++){
+    var p = products[i];
+    if(!search || p.name.toLowerCase().indexOf(search) >= 0){
+      matches.push({p:p, index:i});
+    }
+    if(matches.length >= 40){
+      break;
+    }
+  }
+
+  if(!matches.length){
+    box.innerHTML = '<div class="message">Aucun produit trouve.</div>';
+    return;
+  }
+
+  var out = '';
+  for(var j=0;j<matches.length;j++){
+    var item = matches[j];
+    out += '<div class="assoc" onclick="associateProduct(' + item.index + ')">' +
+      '<b>' + escapeHtml(item.p.name) + '</b>' +
+      '<div class="small">' + escapeHtml(item.p.type) + '</div>' +
+      '</div>';
+  }
+  box.innerHTML = out;
+}
+
+function associateProduct(index){
+  if(!currentBarcode || !products[index]){
+    return;
+  }
+
+  var p = products[index];
+  barcodeMap[currentBarcode] = productKey(p);
+
+  try{
+    localStorage.setItem('laudaflo_v9_barcodes', JSON.stringify(barcodeMap));
+  }catch(e){}
+
+  document.getElementById('associateCard').classList.add('hidden');
+  document.getElementById('barcodeMsg').className = 'message ok';
+  document.getElementById('barcodeMsg').textContent = 'Produit associe : ' + p.name;
+
+  showScannedProduct(p);
+}
+
+function showScannedProduct(p){
+  var card = document.getElementById('scanProductCard');
+  var total = 0;
+
+  for(var i=0;i<p.lots.length;i++){
+    total += Number(p.lots[i].qty) || 0;
+  }
+
+  var html = '<h2>' + escapeHtml(p.name) + '</h2>' +
+    '<span class="pill">' + escapeHtml(p.type) + '</span>' +
+    '<div class="detail">';
+
+  if(p.type === 'Boisson'){
+    html += '<b>Frigo / shop :</b> ' +
+      (p.shopQty === null ? '-' : p.shopQty) +
+      (p.shopDate ? ' - date ' + escapeHtml(p.shopDate) : '') +
+      '<br><br><b>Cave :</b> ' + total;
+  }else{
+    html += '<b>Stock global :</b> ' + total;
+  }
+
+  html += '<br><br><b>Dates :</b><br>' + escapeHtml(lotsText(p.lots)) + '</div>';
+
+  card.innerHTML = html;
+  card.classList.remove('hidden');
+}
+
 
 function excelSerialToDate(value){
   if(typeof value !== 'number' || typeof XLSX === 'undefined'){
@@ -390,6 +535,15 @@ try{
   }
 }catch(e){
   products = [];
+}
+
+try{
+  var savedMap = localStorage.getItem('laudaflo_v9_barcodes');
+  if(savedMap){
+    barcodeMap = JSON.parse(savedMap) || {};
+  }
+}catch(e){
+  barcodeMap = {};
 }
 
 renderStock();
