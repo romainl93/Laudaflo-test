@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#17324d">
-<title>Laudaflo - Test V13</title>
+<title>Laudaflo - Test V14</title>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -39,7 +39,7 @@ nav button.active{color:#0b8d99;border-top:3px solid #0b8d99}
 </head>
 <body>
 
-<header>Laudaflo - Test V13</header>
+<header>Laudaflo - Test V14</header>
 
 <main>
 
@@ -104,6 +104,22 @@ nav button.active{color:#0b8d99;border-top:3px solid #0b8d99}
     <input id="excelFile" type="file" accept=".xlsx,.xls">
     <button onclick="importExcel()">Importer Boissons + Sec</button>
     <div id="importMsg" class="message"></div>
+  </div>
+
+  <div class="card">
+    <h2>Sauvegarde</h2>
+    <p class="small">La sauvegarde contient le stock modifie, les associations codes-barres et l historique.</p>
+    <button onclick="downloadBackup()">Telecharger une sauvegarde</button>
+    <input id="backupFile" type="file" accept=".json,application/json">
+    <button class="secondary" onclick="restoreBackup()">Restaurer cette sauvegarde</button>
+    <div id="backupMsg" class="message"></div>
+  </div>
+
+  <div class="card">
+    <h2>Export Excel</h2>
+    <p class="small">Cree un fichier Excel avec l etat actuel des boissons, du sec, des codes-barres et de l historique.</p>
+    <button onclick="exportCurrentExcel()">Exporter l inventaire actuel</button>
+    <div id="exportMsg" class="message"></div>
   </div>
 </section>
 
@@ -854,6 +870,270 @@ function addLot(lots, dateValue, qtyValue){
   }
 
   lots.push({date:date, qty:qty});
+}
+
+
+function downloadTextFile(filename, text, mimeType){
+  var blob = new Blob([text], {type:mimeType || 'text/plain'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+
+  a.href = url;
+  a.download = filename;
+
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  setTimeout(function(){
+    URL.revokeObjectURL(url);
+  }, 5000);
+}
+
+function safeFileDate(){
+  var d = new Date();
+
+  function p(n){
+    return String(n).padStart(2,'0');
+  }
+
+  return d.getFullYear() +
+    '-' + p(d.getMonth()+1) +
+    '-' + p(d.getDate()) +
+    '_' + p(d.getHours()) +
+    '-' + p(d.getMinutes());
+}
+
+function downloadBackup(){
+  var msg = document.getElementById('backupMsg');
+
+  try{
+    var payload = {
+      app:'Laudaflo',
+      version:'V14',
+      exportedAt:new Date().toISOString(),
+      products:products,
+      barcodeMap:barcodeMap,
+      movementHistory:movementHistory
+    };
+
+    downloadTextFile(
+      'Laudaflo_sauvegarde_' + safeFileDate() + '.json',
+      JSON.stringify(payload, null, 2),
+      'application/json'
+    );
+
+    msg.className = 'message ok';
+    msg.textContent = 'Sauvegarde telechargee.';
+  }catch(e){
+    msg.className = 'message error';
+    msg.textContent = 'Erreur sauvegarde : ' + e.message;
+  }
+}
+
+async function restoreBackup(){
+  var input = document.getElementById('backupFile');
+  var msg = document.getElementById('backupMsg');
+  var file = input.files && input.files[0];
+
+  if(!file){
+    msg.className = 'message error';
+    msg.textContent = 'Choisis d abord un fichier de sauvegarde JSON.';
+    return;
+  }
+
+  try{
+    var text = await file.text();
+    var data = JSON.parse(text);
+
+    if(!data || !Array.isArray(data.products)){
+      throw new Error('Ce fichier ne contient pas une sauvegarde Laudaflo valide.');
+    }
+
+    if(!confirm('Restaurer cette sauvegarde et remplacer les donnees actuelles de ce telephone ?')){
+      return;
+    }
+
+    products = data.products || [];
+    barcodeMap = data.barcodeMap || {};
+    movementHistory = data.movementHistory || [];
+
+    localStorage.setItem('laudaflo_v8_products', JSON.stringify(products));
+    localStorage.setItem('laudaflo_v9_barcodes', JSON.stringify(barcodeMap));
+    localStorage.setItem('laudaflo_v11_history', JSON.stringify(movementHistory));
+
+    renderStock();
+    renderDates();
+    renderHistory();
+
+    msg.className = 'message ok';
+    msg.textContent = 'Sauvegarde restauree : ' + products.length + ' references chargees.';
+  }catch(e){
+    msg.className = 'message error';
+    msg.textContent = 'Erreur restauration : ' + e.message;
+  }
+}
+
+function exportCurrentExcel(){
+  var msg = document.getElementById('exportMsg');
+
+  if(typeof XLSX === 'undefined'){
+    msg.className = 'message error';
+    msg.textContent = 'La bibliotheque Excel ne s est pas chargee. Recharge la page.';
+    return;
+  }
+
+  if(!products.length){
+    msg.className = 'message error';
+    msg.textContent = 'Aucun inventaire a exporter.';
+    return;
+  }
+
+  try{
+    var wb = XLSX.utils.book_new();
+
+    var drinks = products.filter(function(p){
+      return p.type === 'Boisson';
+    });
+
+    var dry = products.filter(function(p){
+      return p.type === 'Sec';
+    });
+
+    var maxDrinkLots = 0;
+    var maxDryLots = 0;
+
+    drinks.forEach(function(p){
+      if((p.lots || []).length > maxDrinkLots){
+        maxDrinkLots = p.lots.length;
+      }
+    });
+
+    dry.forEach(function(p){
+      if((p.lots || []).length > maxDryLots){
+        maxDryLots = p.lots.length;
+      }
+    });
+
+    var drinkHeaders = ['Produit','Date frigo','Qte frigo','Total cave'];
+
+    for(var i=1;i<=maxDrinkLots;i++){
+      drinkHeaders.push('Date cave ' + i);
+      drinkHeaders.push('Qte cave ' + i);
+    }
+
+    var drinkRows = [drinkHeaders];
+
+    drinks.forEach(function(p){
+      var total = 0;
+
+      (p.lots || []).forEach(function(l){
+        total += Number(l.qty) || 0;
+      });
+
+      var row = [
+        p.name,
+        p.shopDate || '',
+        p.shopQty === null || p.shopQty === undefined ? '' : p.shopQty,
+        total
+      ];
+
+      for(var i=0;i<maxDrinkLots;i++){
+        var lot = (p.lots || [])[i];
+        row.push(lot ? (lot.date || '') : '');
+        row.push(lot ? (Number(lot.qty) || 0) : '');
+      }
+
+      drinkRows.push(row);
+    });
+
+    var dryHeaders = ['Produit','Stock total'];
+
+    for(var j=1;j<=maxDryLots;j++){
+      dryHeaders.push('Date ' + j);
+      dryHeaders.push('Qte ' + j);
+    }
+
+    var dryRows = [dryHeaders];
+
+    dry.forEach(function(p){
+      var total = 0;
+
+      (p.lots || []).forEach(function(l){
+        total += Number(l.qty) || 0;
+      });
+
+      var row = [p.name,total];
+
+      for(var j=0;j<maxDryLots;j++){
+        var lot = (p.lots || [])[j];
+        row.push(lot ? (lot.date || '') : '');
+        row.push(lot ? (Number(lot.qty) || 0) : '');
+      }
+
+      dryRows.push(row);
+    });
+
+    var barcodeRows = [['Code-barres','Produit','Categorie']];
+
+    Object.keys(barcodeMap).sort().forEach(function(code){
+      var p = findProductByKey(barcodeMap[code]);
+
+      barcodeRows.push([
+        code,
+        p ? p.name : barcodeMap[code],
+        p ? p.type : ''
+      ]);
+    });
+
+    var historyRows = [['Date et heure','Type','Produit','Categorie','Date lot','Variation']];
+
+    movementHistory.forEach(function(m){
+      historyRows.push([
+        new Date(m.ts).toLocaleString('fr-BE'),
+        m.type || '',
+        m.product || '',
+        m.productType || '',
+        m.date || '',
+        Number(m.qty) || 0
+      ]);
+    });
+
+    XLSX.utils.book_append_sheet(
+      wb,
+      XLSX.utils.aoa_to_sheet(drinkRows),
+      'Boissons'
+    );
+
+    XLSX.utils.book_append_sheet(
+      wb,
+      XLSX.utils.aoa_to_sheet(dryRows),
+      'Sec'
+    );
+
+    XLSX.utils.book_append_sheet(
+      wb,
+      XLSX.utils.aoa_to_sheet(barcodeRows),
+      'Codes-barres'
+    );
+
+    XLSX.utils.book_append_sheet(
+      wb,
+      XLSX.utils.aoa_to_sheet(historyRows),
+      'Historique'
+    );
+
+    XLSX.writeFile(
+      wb,
+      'Laudaflo_inventaire_' + safeFileDate() + '.xlsx'
+    );
+
+    msg.className = 'message ok';
+    msg.textContent = 'Export Excel lance.';
+  }catch(e){
+    msg.className = 'message error';
+    msg.textContent = 'Erreur export : ' + e.message;
+  }
 }
 
 async function importExcel(){
