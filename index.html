@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#17324d">
-<title>Laudaflo - Test V11</title>
+<title>Laudaflo - Test V12</title>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -32,14 +32,14 @@ input{width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:10px;font-s
 .assoc:last-child{border-bottom:0}
 .detail{margin-top:10px;padding:12px;background:#f8fafc;border-radius:12px}
 
-nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border-top:1px solid #dbe3ea}
+nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(5,1fr);background:#fff;border-top:1px solid #dbe3ea}
 nav button{margin:0;border-radius:0;background:#fff;color:#17324d;padding:14px 4px;font-size:13px}
 nav button.active{color:#0b8d99;border-top:3px solid #0b8d99}
 </style>
 </head>
 <body>
 
-<header>Laudaflo - Test V11</header>
+<header>Laudaflo - Test V12</header>
 
 <main>
 
@@ -79,6 +79,16 @@ nav button.active{color:#0b8d99;border-top:3px solid #0b8d99}
 </section>
 
 
+
+<section id="tab-dates" class="hidden">
+  <div class="card">
+    <h2>Dates a surveiller</h2>
+    <p class="small">Lots expires ou arrivant a echeance dans les 30 prochains jours.</p>
+    <div id="datesSummary" class="message"></div>
+    <div id="datesList"></div>
+  </div>
+</section>
+
 <section id="tab-history" class="hidden">
   <div class="card">
     <h2>Historique des mouvements</h2>
@@ -102,6 +112,7 @@ nav button.active{color:#0b8d99;border-top:3px solid #0b8d99}
 <nav>
   <button id="nav-scan" class="active" onclick="showTab('scan')">Scanner</button>
   <button id="nav-stock" onclick="showTab('stock')">Stock</button>
+  <button id="nav-dates" onclick="showTab('dates')">Dates</button>
   <button id="nav-history" onclick="showTab('history')">Historique</button>
   <button id="nav-import" onclick="showTab('import')">Import</button>
 </nav>
@@ -117,6 +128,7 @@ var movementHistory = [];
 function showTab(name){
   document.getElementById('tab-scan').classList.add('hidden');
   document.getElementById('tab-stock').classList.add('hidden');
+  document.getElementById('tab-dates').classList.add('hidden');
   document.getElementById('tab-history').classList.add('hidden');
   document.getElementById('tab-import').classList.add('hidden');
 
@@ -124,6 +136,7 @@ function showTab(name){
 
   document.getElementById('nav-scan').classList.remove('active');
   document.getElementById('nav-stock').classList.remove('active');
+  document.getElementById('nav-dates').classList.remove('active');
   document.getElementById('nav-history').classList.remove('active');
   document.getElementById('nav-import').classList.remove('active');
   document.getElementById('nav-' + name).classList.add('active');
@@ -134,6 +147,10 @@ function showTab(name){
 
   if(name === 'stock'){
     renderStock();
+  }
+
+  if(name === 'dates'){
+    renderDates();
   }
 
   if(name === 'history'){
@@ -306,6 +323,158 @@ function associateProduct(index){
   showScannedProduct(p);
 }
 
+
+
+function parseDisplayDate(value){
+  var m = String(value || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+
+  if(!m){
+    return null;
+  }
+
+  var d = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+  d.setHours(0,0,0,0);
+
+  if(
+    d.getFullYear() !== Number(m[3]) ||
+    d.getMonth() !== Number(m[2]) - 1 ||
+    d.getDate() !== Number(m[1])
+  ){
+    return null;
+  }
+
+  return d;
+}
+
+function daysFromToday(value){
+  var d = parseDisplayDate(value);
+
+  if(!d){
+    return null;
+  }
+
+  var now = new Date();
+  now.setHours(0,0,0,0);
+
+  return Math.round((d - now) / 86400000);
+}
+
+function renderDates(){
+  var list = document.getElementById('datesList');
+  var summary = document.getElementById('datesSummary');
+
+  if(!list || !summary){
+    return;
+  }
+
+  var items = [];
+
+  for(var i=0;i<products.length;i++){
+    var p = products[i];
+
+    for(var j=0;j<p.lots.length;j++){
+      var lot = p.lots[j];
+      var days = daysFromToday(lot.date);
+
+      if(days !== null && days <= 30){
+        items.push({
+          productIndex:i,
+          product:p,
+          date:lot.date,
+          qty:lot.qty,
+          days:days
+        });
+      }
+    }
+
+    if(p.type === 'Boisson' && p.shopDate){
+      var shopDays = daysFromToday(p.shopDate);
+
+      if(shopDays !== null && shopDays <= 30){
+        items.push({
+          productIndex:i,
+          product:p,
+          date:p.shopDate,
+          qty:p.shopQty,
+          days:shopDays,
+          shop:true
+        });
+      }
+    }
+  }
+
+  items.sort(function(a,b){
+    return a.days - b.days;
+  });
+
+  var expired = 0;
+  var week = 0;
+  var month = 0;
+
+  for(var k=0;k<items.length;k++){
+    if(items[k].days < 0){
+      expired++;
+    }else if(items[k].days <= 7){
+      week++;
+    }else{
+      month++;
+    }
+  }
+
+  summary.innerHTML =
+    '<b>' + expired + '</b> expire(s) | ' +
+    '<b>' + week + '</b> dans 7 jours | ' +
+    '<b>' + month + '</b> dans 30 jours';
+
+  if(!items.length){
+    list.innerHTML = '<div class="message">Aucune date a signaler dans les 30 prochains jours.</div>';
+    return;
+  }
+
+  var out = '';
+
+  for(var n=0;n<items.length;n++){
+    var x = items[n];
+
+    var label = '';
+    var color = '#b45309';
+
+    if(x.days < 0){
+      label = 'Expire depuis ' + Math.abs(x.days) + ' j';
+      color = '#b91c1c';
+    }else if(x.days === 0){
+      label = 'Expire aujourd hui';
+      color = '#b91c1c';
+    }else if(x.days <= 7){
+      label = 'Dans ' + x.days + ' j';
+      color = '#b91c1c';
+    }else{
+      label = 'Dans ' + x.days + ' j';
+    }
+
+    out +=
+      '<div style="padding:11px 0;border-bottom:1px solid #dbe3ea" onclick="openDateProduct(' + x.productIndex + ')">' +
+        '<b>' + escapeHtml(x.product.name) + '</b>' +
+        '<div class="small">' +
+          (x.shop ? 'Frigo / shop' : (x.product.type === 'Boisson' ? 'Cave' : 'Stock global')) +
+          ' | ' + escapeHtml(x.date) +
+          ' | Qte ' + escapeHtml(x.qty) +
+        '</div>' +
+        '<div style="font-weight:700;color:' + color + '">' + escapeHtml(label) + '</div>' +
+      '</div>';
+  }
+
+  list.innerHTML = out;
+}
+
+function openDateProduct(index){
+  if(!products[index]){
+    return;
+  }
+
+  showTab('scan');
+  showScannedProduct(products[index]);
+}
 
 function saveHistory(){
   try{
@@ -796,6 +965,7 @@ try{
 }
 
 renderStock();
+renderDates();
 renderHistory();
 </script>
 
