@@ -190,6 +190,7 @@ function renderDetail(){
  if(p.type==='Boisson')fridgeOptions(p);
  options('outLot',p,'Choisir le lot à sortir');
  options('correctionLot',p,'Choisir le lot à corriger');
+ options('dateChangeLot',p,'Choisir le lot dont la date est à corriger');
 }
 function checkedQty(id,allowZero){
  var raw=el(id).value,n=Number(raw);
@@ -232,6 +233,43 @@ async function operation(type){
    'Enregistré sur le stock commun. La modification est sauvegardée.');
  }catch(err){
   writing=false;message('detailMessage','Opération non enregistrée : '+err.message,true);
+  await refresh();
+ }
+}
+
+// Ne modifie que la date d'un lot en cave (ou en stock sec), pas sa quantité.
+async function changeLotDate(){
+ if(writing||loading)return message('detailMessage','Une synchronisation est en cours. Réessaie.',true);
+ var p=findProduct(selectedKey);
+ var selected=el('dateChangeLot').value;
+ if(!p||selected===''||!p.lots[Number(selected)])
+  return message('detailMessage','Choisis le lot dont tu veux corriger la date.',true);
+ var lot=p.lots[Number(selected)];
+ var next=excelDate(el('newLotDate').value);
+ if(!next||dateDays(next)===null)
+  return message('detailMessage','Indique une nouvelle date de péremption valide.',true);
+ if(next===lot.date)
+  return message('detailMessage','La nouvelle date est identique à l’ancienne.',true);
+ var existing=p.lots.find(function(l){return l.date===next});
+ var detail='Produit : '+p.name+'\nAncienne date : '+(lot.date||'Sans date')
+  +'\nNouvelle date : '+next+'\nQuantité conservée : '+lot.qty+' unité(s)';
+ if(existing)detail+='\n\nUn lot de '+existing.qty+' unité(s) porte déjà cette date. Les quantités seront regroupées.';
+ if(!window.confirm(detail+'\n\nConfirmer cette modification dans le stock partagé ?'))return;
+ writing=true;
+ message('detailMessage','Correction de la date en cours…');
+ try{
+  var response=await supa.rpc('laudaflo_change_lot_date',{
+   p_product_key:selectedKey,p_old_date:lot.date,p_new_date:next,p_expected_qty:lot.qty
+  });
+  if(response.error)throw response.error;
+  el('newLotDate').value='';
+  writing=false;
+  await refresh();
+  renderDetail();
+  message('detailMessage','Date corrigée pour ce lot. Quantité conservée et historique enregistré.');
+ }catch(err){
+  writing=false;
+  message('detailMessage','Date non modifiée : '+err.message,true);
   await refresh();
  }
 }
@@ -413,10 +451,11 @@ function renderHistory(){
   var row=document.createElement('div'),label=document.createElement('b'),sub=document.createElement('small');
   row.className='row';label.textContent=m.product||'Produit';
   var when=new Date(m.ts);
-  var changeText=m.type==='Cave vers frigo'?'Ancien transfert : '+Math.abs(m.qty)+' unité(s) de la cave vers le frigo'
+  var isDateCorrection=(m.type||'').indexOf('Date corrigée : ')===0;
+  var changeText=isDateCorrection?m.type:m.type==='Cave vers frigo'?'Ancien transfert : '+Math.abs(m.qty)+' unité(s) de la cave vers le frigo'
    :m.type==='Réassort frigo'?'Réassort : '+Math.abs(m.qty)+' unité(s) prises en cave'
    :(m.type||'Mouvement')+' : '+(m.qty>0?'+':'')+m.qty+' unité(s)';
-  sub.textContent=changeText+' • '+(m.date||'Sans date')+' • '+(isNaN(when.getTime())?'':when.toLocaleString('fr-BE'));
+  sub.textContent=changeText+(isDateCorrection?'':' • '+(m.date||'Sans date'))+' • '+(isNaN(when.getTime())?'':when.toLocaleString('fr-BE'));
   row.append(label,sub);box.appendChild(row);
  });
 }
@@ -492,6 +531,7 @@ function init(){
  el('outButton').onclick=function(){operation('restock')};
  el('fridgeButton').onclick=function(){operation('fridge_correction')};
  el('correctionButton').onclick=function(){operation('correction')};
+ el('dateChangeButton').onclick=changeLotDate;
  el('startCamera').onclick=startCamera;el('stopCamera').onclick=stopCamera;
  el('lookup').onclick=lookupBarcode;el('associateSearch').oninput=renderAssociate;
  el('backupButton').onclick=backup;
