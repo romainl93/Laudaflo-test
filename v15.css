@@ -1,0 +1,28 @@
+:root{--navy:#17324d;--teal:#0b8d99;--bg:#f1f5f9;--muted:#64748b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--navy);font-family:Arial,Helvetica,sans-serif;padding-bottom:90px}
+header{background:var(--navy);color:white;display:flex;align-items:center;justify-content:space-between;padding:15px;font-size:21px;font-weight:bold}
+header small{font-size:12px;opacity:.9}header .small{font-size:11px;max-width:50%;word-break:break-word;text-align:right}
+.wrap{margin:auto;max-width:760px;padding:14px}
+article{background:white;border-radius:16px;margin:0 0 14px;padding:17px;box-shadow:0 2px 6px #0001}
+h2{font-size:22px;margin:3px 0 14px}h3{font-size:18px;margin:12px 0}
+p{line-height:1.5}.muted,.info{font-size:13px;color:var(--muted)}
+label{display:block;font-size:14px;margin:12px 0 2px}
+input,select{width:100%;padding:12px;border-radius:10px;border:1px solid #cbd5e1;margin:6px 0;font-size:16px;background:white;color:var(--navy)}
+button{border:0;border-radius:12px;cursor:pointer;background:var(--teal);color:#fff;font-size:15px;font-weight:bold;padding:13px 15px;margin:6px 0;width:100%}
+button:disabled{opacity:.45;cursor:default}.secondary{background:#dfe7ee;color:var(--navy)}
+.hidden{display:none!important}.status{background:#e0f2f1;padding:12px;border-radius:10px;margin-bottom:12px;font-size:13px}
+.msg{font-size:14px;margin-top:10px;line-height:1.45;white-space:pre-wrap}
+.error{color:#b91c1c}.success{color:#166534}
+.itemButton{background:#fff;color:var(--navy);border-radius:0;border-bottom:1px solid #e2e8f0;margin:0;padding:12px 2px;text-align:left;font-weight:normal;display:block}
+.itemButton strong{display:block;font-size:15px}.itemButton span{display:block;font-size:12px;color:#64748b;margin-top:5px}
+.detailSection{border-top:1px solid #dbe3ea;margin-top:16px;padding-top:8px}
+.row{padding:13px 0;border-bottom:1px solid #e2e8f0;font-size:14px}
+.row b{display:block;margin-bottom:5px}.row small{font-size:12px;color:var(--muted)}
+.expired{color:#b91c1c}.soon{color:#b45309}
+.footerActions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(5,1fr);background:#fff;border-top:1px solid #dbe3ea;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+nav button{padding:14px 2px;margin:0;background:white;color:var(--navy);border-radius:0;font-size:12px}
+nav button.active{border-top:3px solid var(--teal);color:var(--teal)}
+#reader{width:100%;overflow:hidden;border-radius:12px}
+#authScreen{padding-top:25px}
