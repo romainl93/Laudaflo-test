@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="fr"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#17324d">
+<title>Laudaflo V15 — Stock commun (test)</title>
+<link rel="stylesheet" href="./v15.css">
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script defer src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script defer src="./v15.js"></script>
+</head><body>
+<header><div>Laudaflo <small>V15 • TEST</small></div><div class="small" id="accountLabel"></div></header>
+<section class="wrap" id="authScreen">
+ <article><h2>Stock commun de la station</h2>
+ <p>Connecte-toi pour retrouver le même inventaire sur les deux téléphones.</p>
+ <label for="email">Adresse e-mail</label><input id="email" type="email" autocomplete="username" placeholder="tonadresse@exemple.com">
+ <label for="password">Mot de passe Laudaflo</label><input id="password" type="password" autocomplete="current-password" placeholder="Minimum 8 caractères">
+ <button id="signIn">Se connecter</button><button id="signUp" class="secondary">Créer mon compte</button>
+ <p class="info">Après la création, confirme ton adresse avec l'e-mail de Supabase. Ton compte devra ensuite être autorisé pour accéder au stock.</p>
+ <div id="authInfo" class="msg"></div>
+ <button id="signOutAuth" class="secondary hidden">Changer de compte</button>
+ </article>
+</section>
+<div class="wrap hidden" id="app">
+ <div id="connection" class="status">Connexion en cours…</div>
+ <section id="view-stock">
+ <article><h2>Stock partagé</h2>
+ <input id="search" placeholder="Rechercher un produit…">
+ <div id="stockSummary" class="muted"></div>
+ <div id="productList"></div></article>
+ <article class="hidden" id="detail"><h2 id="detailName"></h2><p id="detailSummary"></p>
+ <div class="detailSection"><h3>Livraison</h3><input id="deliveryDate" type="date"><input id="deliveryQty" type="number" min="1" step="1" placeholder="Quantité reçue"><button id="deliveryButton">Enregistrer la livraison</button></div>
+ <div id="outSection" class="detailSection"><h3>Sortie cave vers frigo</h3><select id="outLot"></select><input id="outQty" type="number" min="1" step="1" placeholder="Quantité sortie"><button id="outButton">Déduire de la cave</button><p class="muted">Les ventes du frigo ne sont pas reliées à l'application. Seule la cave est déduite ici.</p></div>
+ <div class="detailSection"><h3>Correction d'inventaire</h3><select id="correctionLot"></select><input id="correctionQty" type="number" min="0" step="1" placeholder="Quantité réellement comptée"><button class="secondary" id="correctionButton">Corriger ce lot</button></div>
+ <div id="detailMessage" class="msg"></div>
+ </article>
+ </section>
+ <section id="view-scan" class="hidden"><article><h2>Scanner un produit</h2>
+ <div id="reader"></div><button id="startCamera">Démarrer le scanner</button><button id="stopCamera" class="secondary">Arrêter le scanner</button>
+ <input id="barcode" inputmode="numeric" placeholder="Saisir un code-barres"><button id="lookup">Rechercher le code</button>
+ <div id="scanMessage" class="msg"></div>
+ <div id="associate" class="hidden"><h3>Associer ce code-barres</h3>
+ <input id="associateSearch" placeholder="Rechercher un produit…"><div id="associateList"></div></div>
+ </article></section>
+ <section id="view-dates" class="hidden"><article><h2>Dates de péremption</h2><p class="muted">Lots expirés ou à échéance sous 30 jours.</p><div id="datesList"></div></article></section>
+ <section id="view-history" class="hidden"><article><h2>Historique commun</h2><div id="historyList"></div></article></section>
+ <section id="view-import" class="hidden"><article><h2>Sauvegardes et import</h2>
+ <p>Une fois l'inventaire commun créé, les imports initiaux sont bloqués pour éviter d'écraser les modifications des collègues.</p>
+ <button id="backupButton">Télécharger une sauvegarde JSON</button><button id="exportExcel">Exporter l'inventaire Excel</button></article>
+ <article><h3>Importer une sauvegarde V14 (.json)</h3><input type="file" id="jsonInput" accept=".json,application/json"><button id="importJson">Importer dans le stock commun vide</button>
+ <div class="msg" id="importMessage"></div></article>
+ <article><h3>Importer un inventaire Excel</h3><p class="muted">Feuilles « Boissons » et « Sec », au format Laudaflo.</p><input type="file" id="excelInput" accept=".xlsx,.xls"><button id="importExcel">Importer le fichier Excel dans le stock commun vide</button></article>
+ </section>
+ <div class="footerActions"><button id="refreshButton" class="secondary">Actualiser le stock</button><button id="signOut" class="secondary">Déconnexion</button></div>
+</div>
+<nav class="hidden" id="nav">
+ <button class="active" data-view="stock">Stock</button><button data-view="scan">Scanner</button>
+ <button data-view="dates">Dates</button><button data-view="history">Historique</button><button data-view="import">Import</button>
+</nav>
+</body></html>
