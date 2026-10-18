@@ -53,7 +53,7 @@ async function authorize(){
   if(m.error)throw m.error;
   if(!m.data){
    setScreen(false);
-   return message('authInfo','Ton e-mail est confirmé, mais ton compte attend son activation. Communique uniquement ton adresse e-mail dans ChatGPT pour que je puisse l’autoriser. N’envoie aucun mot de passe.',true);
+   return message('authInfo','Ton e-mail est confirmé, mais ton compte attend son activation. Reviens dans ChatGPT et dis « compte créé ». Je vérifierai ta demande pour autoriser l’accès au stock. Ne communique aucun mot de passe.',true);
   }
   setScreen(true);
   if(timer)clearInterval(timer);
