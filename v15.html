@@ -45,7 +45,18 @@
  <div id="associate" class="hidden"><h3>Associer ce code-barres</h3>
  <input id="associateSearch" placeholder="Rechercher un produit…"><div id="associateList"></div></div>
  </article></section>
- <section id="view-dates" class="hidden"><article><h2>Dates de péremption</h2><p class="muted">Lots en cave et en stock sec expirés ou à échéance sous 30 jours. Les frigos ne font pas l’objet d’un suivi fiable des ventes.</p><div id="datesList"></div></article></section>
+ <section id="view-dates" class="hidden"><article><h2>Dates de péremption</h2>
+ <p class="muted">Dates des lots en cave et dans le stock sec. Les frigos ne sont pas suivis car les ventes ne sont pas reliées à Laudaflo.</p>
+ <label for="datesWindow">Afficher les produits qui périment dans</label>
+ <select id="datesWindow">
+  <option value="30">30 prochains jours</option>
+  <option value="60">60 prochains jours</option>
+  <option value="90" selected>90 prochains jours</option>
+  <option value="all">Toutes les dates de péremption</option>
+ </select>
+ <input id="datesSearch" placeholder="Rechercher un produit dans les dates…" aria-label="Rechercher dans les dates">
+ <p id="datesSummary" class="muted" aria-live="polite"></p>
+ <div id="datesList"></div></article></section>
  <section id="view-history" class="hidden"><article><h2>Historique commun</h2><div id="historyList"></div></article></section>
  <section id="view-import" class="hidden"><article><h2>Sauvegardes et import</h2>
  <p>Le stock de la cave et le stock sec sont suivis. Les quantités des frigos issues de l’ancien fichier sont conservées uniquement comme historique indicatif. Les imports initiaux sont bloqués pour protéger le stock commun.</p>
