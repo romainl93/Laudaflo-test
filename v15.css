@@ -171,3 +171,22 @@ button:disabled{opacity:.45;cursor:default}
 @media(prefers-reduced-motion:no-preference){
  input,select,.itemButton,.bottomNav button{transition:border-color .14s ease,background-color .14s ease,color .14s ease}
 }
+
+
+/* Inventaire physique : un lot par carte, utilisable d'une seule main sur mobile. */
+.recountPanel{margin:14px 0 20px;background:#f4f9fb;border:1px solid #d5e6eb;border-radius:16px;padding:15px}
+.recountPanel h3{margin:2px 0 7px}
+.recountPanel .muted{font-size:13px}
+.recountCard{background:#fff;border:1px solid #dde9ef;border-radius:15px;padding:15px;margin:12px 0}
+.recountCard strong{display:block;font-size:16px;line-height:1.35;color:#1b3d50}
+.recountCard p{margin:6px 0 10px}
+.recountCard label{margin-top:12px}
+.recountCardDone{border-color:#9bd9ba;background:#fbfefc}
+.recountDoneLabel{display:inline-block;color:#186447;background:#e4f5eb;border-radius:100px;font-weight:750;font-size:12px;padding:5px 11px;margin:1px 0 6px}
+#recountSummary{font-weight:740;color:#126268;margin:14px 0}
+#recountMessage{margin:11px 0;scroll-margin-top:110px}
+#recountPanel select,#recountPanel input{background-color:white}
+#recountSearch{background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%23809bab' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='9' cy='9' r='6'/%3E%3Cpath d='m14 14 4.5 4.5'/%3E%3C/svg%3E") no-repeat 14px center;padding-left:44px}
+#recountToggle{margin:5px 0 12px}
+#recountReset{font-size:13px;min-height:46px}
+@media(max-width:380px){.recountPanel{padding:11px}.recountCard{padding:13px}}
