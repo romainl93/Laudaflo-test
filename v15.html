@@ -8,7 +8,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script defer src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script defer src="./v15.js?v=20"></script>
+<script defer src="./v15.js?v=21"></script>
 <script defer src="./v15-import.js?v=17"></script>
 </head><body>
 <header class="appHeader">
@@ -57,6 +57,11 @@
  <div id="outSection" class="detailSection"><h3>Réassort frigo</h3><p class="muted">À la fin de ta pause, indique combien de boissons tu as prises dans la cave pour remplir le frigo. Seul le stock de la cave diminue ; les ventes en caisse ne sont pas comptabilisées ici.</p><select id="outLot"></select><input id="outQty" type="number" min="1" step="1" placeholder="Quantité prise en cave"><button id="outButton">Valider le réassort</button></div>
  <div id="fridgeSection" class="detailSection hidden"><h3>Inventaire du frigo (ancien suivi)</h3><p class="muted">Les ventes en caisse ne sont pas encore synchronisées. Corrige ici le nombre réel restant d'un lot après les ventes.</p><select id="fridgeLot"></select><input id="fridgeQty" type="number" min="0" step="1" placeholder="Quantité réelle de ce lot dans le frigo"><button class="secondary" id="fridgeButton">Corriger le frigo</button></div>
  <div class="detailSection"><h3>Correction d'inventaire</h3><select id="correctionLot"></select><input id="correctionQty" type="number" min="0" step="1" placeholder="Quantité réellement comptée"><button class="secondary" id="correctionButton">Corriger ce lot</button></div>
+ <div class="detailSection" id="dateEditSection"><h3>Modifier la date d’un lot</h3>
+ <p class="muted">Corrige uniquement la date du lot choisi dans la cave ou le stock sec. Sa quantité reste inchangée. Si un autre lot a déjà cette date, les quantités seront regroupées.</p>
+ <label for="dateChangeLot">Lot à modifier</label><select id="dateChangeLot"></select>
+ <label for="newLotDate">Nouvelle date de péremption</label><input id="newLotDate" type="date">
+ <button type="button" class="secondary" id="dateChangeButton">Enregistrer la nouvelle date</button></div>
  <div id="detailMessage" class="msg"></div>
  </article>
  </section>
