@@ -32,7 +32,8 @@
  <div id="productList"></div></article>
  <article class="hidden" id="detail"><h2 id="detailName"></h2><p id="detailSummary"></p>
  <div class="detailSection"><h3>Livraison</h3><input id="deliveryDate" type="date"><input id="deliveryQty" type="number" min="1" step="1" placeholder="Quantité reçue"><button id="deliveryButton">Enregistrer la livraison</button></div>
- <div id="outSection" class="detailSection"><h3>Sortie cave vers frigo</h3><select id="outLot"></select><input id="outQty" type="number" min="1" step="1" placeholder="Quantité sortie"><button id="outButton">Déduire de la cave</button><p class="muted">Les ventes du frigo ne sont pas reliées à l'application. Seule la cave est déduite ici.</p></div>
+ <div id="outSection" class="detailSection"><h3>Transfert cave → frigo</h3><select id="outLot"></select><input id="outQty" type="number" min="1" step="1" placeholder="Quantité transférée"><button id="outButton">Transférer vers le frigo</button><p class="muted">Le transfert retire automatiquement les unités de la cave et les ajoute au frigo, sans modifier le stock total.</p></div>
+ <div id="fridgeSection" class="detailSection"><h3>Inventaire du frigo</h3><p class="muted">Les ventes en caisse ne sont pas encore synchronisées. Corrige ici le nombre réel restant d'un lot après les ventes.</p><select id="fridgeLot"></select><input id="fridgeQty" type="number" min="0" step="1" placeholder="Quantité réelle de ce lot dans le frigo"><button class="secondary" id="fridgeButton">Corriger le frigo</button></div>
  <div class="detailSection"><h3>Correction d'inventaire</h3><select id="correctionLot"></select><input id="correctionQty" type="number" min="0" step="1" placeholder="Quantité réellement comptée"><button class="secondary" id="correctionButton">Corriger ce lot</button></div>
  <div id="detailMessage" class="msg"></div>
  </article>
