@@ -2,16 +2,22 @@
 <html lang="fr"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#17324d">
+<meta name="theme-color" content="#18354e">
 <title>Laudaflo V15 — Stock de la cave (test)</title>
-<link rel="stylesheet" href="./v15.css?v=17">
+<link rel="stylesheet" href="./v15.css?v=19">
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script defer src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script defer src="./v15.js?v=18"></script>
 <script defer src="./v15-import.js?v=17"></script>
 </head><body>
-<header><div>Laudaflo <small>V15 • TEST</small></div><div class="small" id="accountLabel"></div></header>
+<header class="appHeader">
+ <div class="brand">
+  <div class="brandMark" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="11" width="4" height="9" rx="1"/><rect x="10" y="6" width="4" height="14" rx="1"/><rect x="16" y="3" width="4" height="17" rx="1"/></svg></div>
+  <div class="brandText"><strong>Laudaflo</strong><span>GESTION DES STOCKS <em>· V15 TEST</em></span></div>
+ </div>
+ <div class="headerMeta"><div class="onlinePill">Stock partagé</div><div class="small" id="accountLabel"></div></div>
+</header>
 <section class="wrap" id="authScreen">
  <article><h2>Stock commun de la station</h2>
  <p>Connecte-toi pour retrouver le même inventaire sur les deux téléphones.</p>
@@ -67,8 +73,26 @@
  </section>
  <div class="footerActions"><button id="refreshButton" class="secondary">Actualiser le stock</button><button id="signOut" class="secondary">Déconnexion</button></div>
 </div>
-<nav class="hidden" id="nav">
- <button class="active" data-view="stock">Stock</button><button data-view="scan">Scanner</button>
- <button data-view="dates">Dates</button><button data-view="history">Historique</button><button data-view="import">Import</button>
+<nav class="bottomNav hidden" id="nav" aria-label="Navigation principale">
+ <button type="button" class="active" data-view="stock" aria-label="Stock" aria-current="page">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7 12 3l9 4-9 4-9-4Z"/><path d="M3 7v10l9 4 9-4V7M12 11v10"/></svg>
+  <span>Stock</span>
+ </button>
+ <button type="button" data-view="scan" aria-label="Scanner">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><path d="M8 10v4M11 9v6M14 10v4M17 9v6"/></svg>
+  <span>Scanner</span>
+ </button>
+ <button type="button" data-view="dates" aria-label="Dates de péremption">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 14h3M8 17h6"/></svg>
+  <span>Dates</span>
+ </button>
+ <button type="button" data-view="history" aria-label="Historique">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/></svg>
+  <span>Historique</span>
+ </button>
+ <button type="button" data-view="import" aria-label="Import et sauvegardes">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 11l4 4 4-4M4 17v3h16v-3"/></svg>
+  <span>Import</span>
+ </button>
 </nav>
 </body></html>
