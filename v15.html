@@ -4,11 +4,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#18354e">
 <title>Laudaflo V15 — Stock de la cave (test)</title>
-<link rel="stylesheet" href="./v15.css?v=19">
+<link rel="stylesheet" href="./v15.css?v=20">
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script defer src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script defer src="./v15.js?v=19"></script>
+<script defer src="./v15.js?v=20"></script>
 <script defer src="./v15-import.js?v=17"></script>
 </head><body>
 <header class="appHeader">
@@ -35,6 +35,22 @@
  <article><h2>Inventaire de la cave et du stock sec</h2><p class="muted">Priorité à la réserve : les quantités des frigos ne sont pas suivies car les ventes ne sont pas reliées à Laudaflo.</p>
  <input id="search" placeholder="Rechercher un produit…">
  <div id="stockSummary" class="muted"></div>
+ <button type="button" class="secondary" id="recountToggle">Commencer le comptage de la cave</button>
+ <div id="recountPanel" class="recountPanel hidden">
+  <h3>Inventaire physique de la cave</h3>
+  <p class="muted">Compare chaque lot avec les bouteilles ou canettes réellement présentes en cave. Une quantité différente ne sera appliquée au stock commun qu'après ta confirmation.</p>
+  <p class="muted">Les coches « Vérifié » sont propres à ce téléphone et à la journée. Le stock corrigé, lui, est partagé entre les appareils.</p>
+  <div id="recountSummary" aria-live="polite"></div>
+  <input id="recountSearch" type="search" placeholder="Rechercher une boisson…" aria-label="Rechercher une boisson à compter">
+  <label for="recountFilter">Afficher</label>
+  <select id="recountFilter">
+   <option value="pending">Lots à vérifier</option>
+   <option value="all">Tous les lots</option>
+  </select>
+  <div id="recountMessage" class="msg" aria-live="polite"></div>
+  <div id="recountList"></div>
+  <button type="button" class="secondary" id="recountReset">Recommencer les vérifications du jour</button>
+ </div>
  <div id="productList"></div></article>
  <article class="hidden" id="detail"><h2 id="detailName"></h2><p id="detailSummary"></p>
  <div class="detailSection"><h3>Livraison</h3><input id="deliveryDate" type="date"><input id="deliveryQty" type="number" min="1" step="1" placeholder="Quantité reçue"><button id="deliveryButton">Enregistrer la livraison</button></div>
