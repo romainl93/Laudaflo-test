@@ -135,7 +135,7 @@ function renderStock(){
   var btn=document.createElement('button');btn.className='itemButton';
   var title=document.createElement('strong'),sub=document.createElement('span');
   title.textContent=p.name;
-  sub.textContent=p.type+' • '+(p.type==='Boisson'?'Cave : ':'Stock : ')+totalLots(p)+(p.type==='Boisson'?' • Frigo : '+(p.shopQty===null&&!(p.shopLots||[]).length?'-':fridgeLotsTotal(p)):'');
+  sub.textContent=(p.type==='Boisson'?'Cave : ':'Stock sec : ')+totalLots(p)+' unité(s)';
   btn.append(title,sub);btn.onclick=function(){openProduct(productKey(p))};list.appendChild(btn);
  });
  if(subset.length>250){
@@ -170,10 +170,11 @@ function renderDetail(){
  if(!p)return;
  el('detailName').textContent=p.name;
  el('detailSummary').textContent=p.type==='Boisson'
-  ?'Cave : '+totalLots(p)+' | Frigo : '+(p.shopQty===null&&!(p.shopLots||[]).length?'-':fridgeLotsTotal(p))+' | Cave : '+p.lots.map(function(l){return (l.date||'Sans date')+' ('+l.qty+')'}).join(', ')+' | Frigo : '+(p.shopLots||[]).map(function(l){return (l.date||'Sans date')+' ('+l.qty+')'}).join(', ')
+  ?'Stock en cave : '+totalLots(p)+' unité(s) | Lots en cave : '+(p.lots.map(function(l){return (l.date||'Sans date')+' ('+l.qty+')'}).join(', ')||'Aucun lot')
   :'Stock : '+totalLots(p)+' | Lots : '+p.lots.map(function(l){return (l.date||'Sans date')+' ('+l.qty+')'}).join(', ');
  el('outSection').classList.toggle('hidden',p.type!=='Boisson');
- el('fridgeSection').classList.toggle('hidden',p.type!=='Boisson');
+ // Les relevés de frigo historiques sont conservés, mais le suivi quotidien est centré sur la cave.
+ el('fridgeSection').classList.add('hidden');
  if(p.type==='Boisson')fridgeOptions(p);
  options('outLot',p,'Choisir le lot à sortir');
  options('correctionLot',p,'Choisir le lot à corriger');
@@ -196,7 +197,7 @@ async function operation(type){
   if(type==='delivery'){
    date=excelDate(el('deliveryDate').value);amount=checkedQty('deliveryQty',false);
    if(!date)throw new Error('Indique la date du lot livré.');
-  }else if(type==='out'){
+  }else if(type==='restock'){
    if(el('outLot').value===''||!p.lots[Number(el('outLot').value)])throw new Error('Choisis le lot à sortir.');
    date=p.lots[Number(el('outLot').value)].date;amount=checkedQty('outQty',false);
   }else if(type==='fridge_correction'){
@@ -208,10 +209,15 @@ async function operation(type){
   }
   writing=true;
   message('detailMessage','Enregistrement sur le stock commun…');
-  var r=await supa.rpc('laudaflo_change_stock',{p_product_key:selectedKey,p_operation:type,p_date:date,p_amount:amount});
+  var r=type==='restock'
+   ?await supa.rpc('laudaflo_restock_fridge',{p_product_key:selectedKey,p_date:date,p_amount:amount})
+   :await supa.rpc('laudaflo_change_stock',{p_product_key:selectedKey,p_operation:type,p_date:date,p_amount:amount});
   if(r.error)throw r.error;
   writing=false;await refresh();
-  renderDetail();message('detailMessage','Enregistré sur le stock commun. Les deux appareils verront la modification.');
+  renderDetail();
+  message('detailMessage',type==='restock'?
+   'Réassort enregistré : '+amount+' unité(s) retirée(s) de la cave. Le comptage des frigos n’a pas été modifié.':
+   'Enregistré sur le stock commun. La modification est sauvegardée.');
  }catch(err){
   writing=false;message('detailMessage','Opération non enregistrée : '+err.message,true);
   await refresh();
@@ -227,11 +233,7 @@ function renderDates(){
  var rows=[];
  records.forEach(function(p){
   p.lots.forEach(function(l){var d=dateDays(l.date);if(d!==null&&d<=30)rows.push({p:p,date:l.date,qty:l.qty,days:d,place:p.type==='Boisson'?'Cave':'Stock'})});
-  if(p.type==='Boisson'){
-   (p.shopLots||[]).forEach(function(l){
-    var d=dateDays(l.date);if(d!==null&&d<=30)rows.push({p:p,date:l.date,qty:l.qty,days:d,place:'Frigo'});
-   });
-  }
+
  });
  rows.sort(function(a,b){return a.days-b.days});
  var box=el('datesList');box.replaceChildren();
@@ -252,7 +254,8 @@ function renderHistory(){
   var row=document.createElement('div'),label=document.createElement('b'),sub=document.createElement('small');
   row.className='row';label.textContent=m.product||'Produit';
   var when=new Date(m.ts);
-  var changeText=m.type==='Cave vers frigo'?'Transféré : '+Math.abs(m.qty)+' unité(s) de la cave au frigo'
+  var changeText=m.type==='Cave vers frigo'?'Ancien transfert : '+Math.abs(m.qty)+' unité(s) de la cave vers le frigo'
+   :m.type==='Réassort frigo'?'Réassort : '+Math.abs(m.qty)+' unité(s) prises en cave'
    :(m.type||'Mouvement')+' : '+(m.qty>0?'+':'')+m.qty+' unité(s)';
   sub.textContent=changeText+' • '+(m.date||'Sans date')+' • '+(isNaN(when.getTime())?'':when.toLocaleString('fr-BE'));
   row.append(label,sub);box.appendChild(row);
@@ -322,7 +325,7 @@ function init(){
  el('signUp').onclick=signUp;el('signIn').onclick=signIn;el('signOut').onclick=signOut;el('signOutAuth').onclick=signOut;
  el('refreshButton').onclick=refresh;el('search').oninput=renderStock;
  el('deliveryButton').onclick=function(){operation('delivery')};
- el('outButton').onclick=function(){operation('out')};
+ el('outButton').onclick=function(){operation('restock')};
  el('fridgeButton').onclick=function(){operation('fridge_correction')};
  el('correctionButton').onclick=function(){operation('correction')};
  el('startCamera').onclick=startCamera;el('stopCamera').onclick=stopCamera;
