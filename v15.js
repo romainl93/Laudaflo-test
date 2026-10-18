@@ -86,14 +86,17 @@ async function refresh(){
  if(!ready||loading||writing)return;
  loading=true;
  try{
-  var sets=await Promise.all([allRows('laudaflo_products'),allRows('laudaflo_lots'),allRows('laudaflo_barcodes'),allRows('laudaflo_movements')]);
+  var sets=await Promise.all([allRows('laudaflo_products'),allRows('laudaflo_lots'),allRows('laudaflo_barcodes'),allRows('laudaflo_movements'),allRows('laudaflo_shop_lots')]);
   var byId={},latest=[];
   sets[0].forEach(function(p){
-   var item={id:p.id,type:p.product_type,name:p.name,shopQty:p.shop_qty===null?null:Number(p.shop_qty),shopDate:p.shop_date||'',lots:[]};
+   var item={id:p.id,type:p.product_type,name:p.name,shopQty:p.shop_qty===null?null:Number(p.shop_qty),shopDate:p.shop_date||'',lots:[],shopLots:[]};
    latest.push(item);byId[p.id]=item;
   });
   sets[1].forEach(function(l){
    if(byId[l.product_id]&&Number(l.quantity)>0)byId[l.product_id].lots.push({date:l.expiry_date||'',qty:Number(l.quantity)});
+  });
+  sets[4].forEach(function(l){
+   if(byId[l.product_id]&&Number(l.quantity)>0)byId[l.product_id].shopLots.push({date:l.expiry_date||'',qty:Number(l.quantity)});
   });
   var latestBarcodes={};
   sets[2].forEach(function(b){if(byId[b.product_id])latestBarcodes[b.barcode]=productKey(byId[b.product_id])});
@@ -122,6 +125,7 @@ function switchView(view){
  window.scrollTo({top:0,behavior:'smooth'});
 }
 function totalLots(p){return p.lots.reduce(function(sum,l){return sum+Number(l.qty||0)},0)}
+function fridgeLotsTotal(p){return (p.shopLots||[]).reduce(function(sum,l){return sum+Number(l.qty||0)},0)}
 function renderStock(){
  var search=el('search').value.toLocaleLowerCase().trim();
  var subset=records.filter(function(p){return !search||p.name.toLocaleLowerCase().includes(search)});
@@ -131,7 +135,7 @@ function renderStock(){
   var btn=document.createElement('button');btn.className='itemButton';
   var title=document.createElement('strong'),sub=document.createElement('span');
   title.textContent=p.name;
-  sub.textContent=p.type+' • '+(p.type==='Boisson'?'Cave : ':'Stock : ')+totalLots(p)+(p.type==='Boisson'?' • Frigo : '+(p.shopQty===null?'-':p.shopQty):'');
+  sub.textContent=p.type+' • '+(p.type==='Boisson'?'Cave : ':'Stock : ')+totalLots(p)+(p.type==='Boisson'?' • Frigo : '+(p.shopQty===null&&!(p.shopLots||[]).length?'-':fridgeLotsTotal(p)):'');
   btn.append(title,sub);btn.onclick=function(){openProduct(productKey(p))};list.appendChild(btn);
  });
  if(subset.length>250){
@@ -152,15 +156,25 @@ function options(id,p,includeBlank){
   sel.appendChild(opt);
  });
 }
+function fridgeOptions(p){
+ var sel=el('fridgeLot');sel.replaceChildren();
+ var placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='Choisir le lot du frigo';sel.appendChild(placeholder);
+ (p.shopLots||[]).forEach(function(l,i){
+  var opt=document.createElement('option');opt.value=String(i);
+  opt.textContent=(l.date||'Sans date')+' — '+l.qty+' unités';sel.appendChild(opt);
+ });
+}
 function renderDetail(){
  var p=findProduct(selectedKey);
  el('detail').classList.toggle('hidden',!p);
  if(!p)return;
  el('detailName').textContent=p.name;
  el('detailSummary').textContent=p.type==='Boisson'
-  ?'Cave : '+totalLots(p)+' | Frigo/shop : '+(p.shopQty===null?'-':p.shopQty)+' | Lots : '+p.lots.map(function(l){return (l.date||'Sans date')+' ('+l.qty+')'}).join(', ')
+  ?'Cave : '+totalLots(p)+' | Frigo : '+(p.shopQty===null&&!(p.shopLots||[]).length?'-':fridgeLotsTotal(p))+' | Cave : '+p.lots.map(function(l){return (l.date||'Sans date')+' ('+l.qty+')'}).join(', ')+' | Frigo : '+(p.shopLots||[]).map(function(l){return (l.date||'Sans date')+' ('+l.qty+')'}).join(', ')
   :'Stock : '+totalLots(p)+' | Lots : '+p.lots.map(function(l){return (l.date||'Sans date')+' ('+l.qty+')'}).join(', ');
  el('outSection').classList.toggle('hidden',p.type!=='Boisson');
+ el('fridgeSection').classList.toggle('hidden',p.type!=='Boisson');
+ if(p.type==='Boisson')fridgeOptions(p);
  options('outLot',p,'Choisir le lot à sortir');
  options('correctionLot',p,'Choisir le lot à corriger');
 }
@@ -185,6 +199,9 @@ async function operation(type){
   }else if(type==='out'){
    if(el('outLot').value===''||!p.lots[Number(el('outLot').value)])throw new Error('Choisis le lot à sortir.');
    date=p.lots[Number(el('outLot').value)].date;amount=checkedQty('outQty',false);
+  }else if(type==='fridge_correction'){
+   if(p.type!=='Boisson'||el('fridgeLot').value===''||!p.shopLots[Number(el('fridgeLot').value)])throw new Error('Choisis le lot du frigo.');
+   date=p.shopLots[Number(el('fridgeLot').value)].date;amount=checkedQty('fridgeQty',true);
   }else{
    if(el('correctionLot').value===''||!p.lots[Number(el('correctionLot').value)])throw new Error('Choisis le lot à corriger.');
    date=p.lots[Number(el('correctionLot').value)].date;amount=checkedQty('correctionQty',true);
@@ -210,8 +227,10 @@ function renderDates(){
  var rows=[];
  records.forEach(function(p){
   p.lots.forEach(function(l){var d=dateDays(l.date);if(d!==null&&d<=30)rows.push({p:p,date:l.date,qty:l.qty,days:d,place:p.type==='Boisson'?'Cave':'Stock'})});
-  if(p.type==='Boisson'&&p.shopDate&&Number(p.shopQty)>0){
-   var d=dateDays(p.shopDate);if(d!==null&&d<=30)rows.push({p:p,date:p.shopDate,qty:p.shopQty,days:d,place:'Frigo/shop'});
+  if(p.type==='Boisson'){
+   (p.shopLots||[]).forEach(function(l){
+    var d=dateDays(l.date);if(d!==null&&d<=30)rows.push({p:p,date:l.date,qty:l.qty,days:d,place:'Frigo'});
+   });
   }
  });
  rows.sort(function(a,b){return a.days-b.days});
@@ -233,7 +252,9 @@ function renderHistory(){
   var row=document.createElement('div'),label=document.createElement('b'),sub=document.createElement('small');
   row.className='row';label.textContent=m.product||'Produit';
   var when=new Date(m.ts);
-  sub.textContent=(m.type||'Mouvement')+' • '+(m.date||'Sans date')+' • '+(m.qty>0?'+':'')+m.qty+' • '+(isNaN(when.getTime())?'':when.toLocaleString('fr-BE'));
+  var changeText=m.type==='Cave vers frigo'?'Transféré : '+Math.abs(m.qty)+' unité(s) de la cave au frigo'
+   :(m.type||'Mouvement')+' : '+(m.qty>0?'+':'')+m.qty+' unité(s)';
+  sub.textContent=changeText+' • '+(m.date||'Sans date')+' • '+(isNaN(when.getTime())?'':when.toLocaleString('fr-BE'));
   row.append(label,sub);box.appendChild(row);
  });
 }
@@ -292,7 +313,7 @@ function saveFile(filename,contents,mime){
 function backup(){
  saveFile('Laudaflo_V15_'+new Date().toISOString().slice(0,10)+'.json',
  JSON.stringify({app:'Laudaflo',version:'V15',exportedAt:new Date().toISOString(),
-  products:records.map(function(p){return {type:p.type,name:p.name,shopDate:p.shopDate,shopQty:p.shopQty,lots:p.lots}}),
+  products:records.map(function(p){return {type:p.type,name:p.name,shopDate:p.shopDate,shopQty:p.shopQty,lots:p.lots,shopLots:p.shopLots}}),
   barcodeMap:barcodes,movementHistory:movements},null,2),'application/json');
 }
 function init(){
@@ -302,6 +323,7 @@ function init(){
  el('refreshButton').onclick=refresh;el('search').oninput=renderStock;
  el('deliveryButton').onclick=function(){operation('delivery')};
  el('outButton').onclick=function(){operation('out')};
+ el('fridgeButton').onclick=function(){operation('fridge_correction')};
  el('correctionButton').onclick=function(){operation('correction')};
  el('startCamera').onclick=startCamera;el('stopCamera').onclick=stopCamera;
  el('lookup').onclick=lookupBarcode;el('associateSearch').oninput=renderAssociate;
