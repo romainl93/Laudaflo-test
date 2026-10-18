@@ -227,23 +227,48 @@ function dateDays(value){
  var m=String(value||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(!m)return null;
  var date=new Date(Number(m[3]),Number(m[2])-1,Number(m[1]));
  if(date.getFullYear()!==Number(m[3])||date.getMonth()!==Number(m[2])-1||date.getDate()!==Number(m[1]))return null;
- var now=new Date();now.setHours(0,0,0,0);return Math.round((date-now)/86400000);
+ var now=new Date();
+ return Math.round((Date.UTC(date.getFullYear(),date.getMonth(),date.getDate())-Date.UTC(now.getFullYear(),now.getMonth(),now.getDate()))/86400000);
 }
 function renderDates(){
- var rows=[];
+ var horizon=el('datesWindow').value;
+ var maxDays=horizon==='all'?Infinity:Number(horizon);
+ var search=el('datesSearch').value.trim().toLocaleLowerCase();
+ var matching=[],totalDated=0,unreadable=0,expired=0,soon=0;
  records.forEach(function(p){
-  p.lots.forEach(function(l){var d=dateDays(l.date);if(d!==null&&d<=30)rows.push({p:p,date:l.date,qty:l.qty,days:d,place:p.type==='Boisson'?'Cave':'Stock'})});
-
+  p.lots.forEach(function(l){
+   if(!(Number(l.qty)>0))return;
+   var d=dateDays(l.date);
+   if(d===null){
+    if(l.date&&l.date.trim())unreadable++;
+    return;
+   }
+   totalDated++;
+   if(d>maxDays || (search&&!p.name.toLocaleLowerCase().includes(search)))return;
+   matching.push({p:p,date:l.date,qty:l.qty,days:d,place:p.type==='Boisson'?'Cave':'Stock sec'});
+   if(d<0)expired++;
+   else if(d<=7)soon++;
+  });
  });
- rows.sort(function(a,b){return a.days-b.days});
+ matching.sort(function(a,b){return a.days-b.days||a.p.name.localeCompare(b.p.name,'fr')});
+ el('datesSummary').textContent=matching.length+' lot(s) affiché(s) sur '+totalDated+' lot(s) avec une date valide'
+  +' • '+expired+' périmé(s) • '+soon+' à échéance sous 7 jours'
+  +(unreadable?' • '+unreadable+' date(s) à vérifier':'');
  var box=el('datesList');box.replaceChildren();
- if(!rows.length){box.textContent='Aucune date à signaler dans les 30 prochains jours.';return}
- rows.forEach(function(x){
+ if(!matching.length){
+  var empty=document.createElement('p');
+  empty.className='muted';
+  empty.textContent=search?'Aucun produit ne correspond à cette recherche.':'Aucune date à afficher pour cette période.';
+  box.appendChild(empty);return;
+ }
+ matching.forEach(function(x){
   var b=document.createElement('button');b.className='itemButton';
   var title=document.createElement('strong'),sub=document.createElement('span');
   title.textContent=x.p.name;
-  sub.textContent=x.place+' • '+x.date+' • '+x.qty+' unité(s) • '+(x.days<0?'Expiré depuis '+(-x.days)+' j':x.days===0?"Expire aujourd'hui":'Dans '+x.days+' j');
-  if(x.days<=7)sub.className='expired';else sub.className='soon';
+  sub.textContent=x.place+' • '+x.date+' • '+x.qty+' unité(s) • '
+   +(x.days<0?'Périmé depuis '+(-x.days)+' j':x.days===0?"Expire aujourd'hui":'Dans '+x.days+' j');
+  if(x.days<0)sub.className='expired';
+  else if(x.days<=7)sub.className='soon';
   b.append(title,sub);b.onclick=function(){openProduct(productKey(x.p))};box.appendChild(b);
  });
 }
@@ -324,6 +349,7 @@ function init(){
  supa=window.supabase.createClient(projectUrl,publishable,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
  el('signUp').onclick=signUp;el('signIn').onclick=signIn;el('signOut').onclick=signOut;el('signOutAuth').onclick=signOut;
  el('refreshButton').onclick=refresh;el('search').oninput=renderStock;
+ el('datesWindow').onchange=renderDates;el('datesSearch').oninput=renderDates;
  el('deliveryButton').onclick=function(){operation('delivery')};
  el('outButton').onclick=function(){operation('restock')};
  el('fridgeButton').onclick=function(){operation('fridge_correction')};
