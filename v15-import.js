@@ -80,6 +80,18 @@ function readExcelRows(){
     all.push({type:'Sec',name:nameS,lots:lotsS});
    }
   }
+  // Une exportation V15 peut contenir plusieurs dates distinctes au frigo.
+  var fridgeSheet=workbook.Sheets['Frigo_lots'];
+  if(fridgeSheet){
+   var fridgeRows=XLSX.utils.sheet_to_json(fridgeSheet,{header:1,defval:null,raw:true});
+   var drinkMap=new Map();
+   all.forEach(function(p){if(p.type==='Boisson'){p.shopLots=[];drinkMap.set(p.name,p)}});
+   for(var k=1;k<fridgeRows.length;k++){
+    var fr=fridgeRows[k]||[];
+    var productName=String(fr[0]||'').trim(),matched=drinkMap.get(productName);
+    if(matched)addLotLocal(matched.shopLots,fr[1],fr[2]);
+   }
+  }
   if(!all.length)throw new Error('Aucune feuille Boissons ou Sec exploitable.');
   return {app:'Laudaflo',products:all,barcodeMap:{},movementHistory:[]};
  });
@@ -115,12 +127,17 @@ function makeSheets(){
   for(var z=0;z<maxS;z++){var lot=p.lots[z];row.push(lot?lot.date:'',lot?lot.qty:'')}
   dryRows.push(row);
  });
+ var fridgeRows=[['Produit','Date du lot au frigo','Quantité']];
+ drinks.forEach(function(p){
+  (p.shopLots||[]).forEach(function(l){fridgeRows.push([p.name,l.date,l.qty])});
+ });
  var codeRows=[['Code-barres','Produit']];
  Object.keys(barcodes).sort().forEach(function(b){codeRows.push([b,barcodes[b]])});
  var historyRows=[['Date','Mouvement','Produit','Date lot','Variation']];
  movements.forEach(function(m){historyRows.push([m.ts,m.type,m.product,m.date,m.qty])});
  XLSX.utils.book_append_sheet(book,XLSX.utils.aoa_to_sheet(drinkRows),'Boissons');
  XLSX.utils.book_append_sheet(book,XLSX.utils.aoa_to_sheet(dryRows),'Sec');
+ XLSX.utils.book_append_sheet(book,XLSX.utils.aoa_to_sheet(fridgeRows),'Frigo_lots');
  XLSX.utils.book_append_sheet(book,XLSX.utils.aoa_to_sheet(codeRows),'Codes-barres');
  XLSX.utils.book_append_sheet(book,XLSX.utils.aoa_to_sheet(historyRows),'Historique');
  return book;
@@ -136,7 +153,10 @@ function escapeCsv(v){
 function exportCsv(){
  var lines=[['Catégorie','Produit','Lieu','Date du lot','Quantité']];
  records.forEach(function(p){
-  if(p.type==='Boisson')lines.push([p.type,p.name,'Frigo',p.shopDate||'',p.shopQty==null?'':p.shopQty]);
+  if(p.type==='Boisson'){
+   (p.shopLots||[]).forEach(function(l){lines.push([p.type,p.name,'Frigo',l.date,l.qty])});
+   if(!(p.shopLots||[]).length)lines.push([p.type,p.name,'Frigo','',p.shopQty==null?'':p.shopQty]);
+  }
   p.lots.forEach(function(l){lines.push([p.type,p.name,p.type==='Boisson'?'Cave':'Stock',l.date,l.qty])});
   if(!p.lots.length&&p.type!=='Boisson')lines.push([p.type,p.name,'Stock','',0]);
  });
