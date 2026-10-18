@@ -152,12 +152,19 @@ function openProduct(key){
  selectedKey=key;switchView('stock');renderDetail();
  el('detail').scrollIntoView({behavior:'smooth',block:'start'});
 }
+function sortExpiryDate(first,second){
+ var a=dateDays(first),b=dateDays(second);
+ return (a===null?999999:a)-(b===null?999999:b) || String(first||'').localeCompare(String(second||''));
+}
 function options(id,p,includeBlank){
  var sel=el(id);sel.replaceChildren();
  var o=document.createElement('option');o.value='';o.textContent=includeBlank;sel.appendChild(o);
- p.lots.forEach(function(l,i){
-  var opt=document.createElement('option');opt.value=String(i);
-  opt.textContent=(l.date||'Sans date')+' — '+l.qty+' unités';
+ // Trier les dates de péremption, sans perdre les vrais indices des lots.
+ p.lots.map(function(l,i){return {lot:l,index:i}}).sort(function(a,b){
+  return sortExpiryDate(a.lot.date,b.lot.date);
+ }).forEach(function(entry){
+  var opt=document.createElement('option');opt.value=String(entry.index);
+  opt.textContent=(entry.lot.date||'Sans date')+' — '+entry.lot.qty+' unités';
   sel.appendChild(opt);
  });
 }
@@ -282,7 +289,7 @@ function renderRecount(force){
  var filtered=all.filter(function(x){
   return (showAll||!recountDone(x.p,x.l))&&(!query||x.p.name.toLocaleLowerCase().includes(query));
  });
- filtered.sort(function(a,b){return a.p.name.localeCompare(b.p.name,'fr')||String(a.l.date).localeCompare(String(b.l.date))});
+ filtered.sort(function(a,b){return a.p.name.localeCompare(b.p.name,'fr')||sortExpiryDate(a.l.date,b.l.date)});
  var list=el('recountList');list.replaceChildren();
  if(!filtered.length){
   var empty=document.createElement('p');empty.className='muted';
