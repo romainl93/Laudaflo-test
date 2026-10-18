@@ -111,7 +111,7 @@ function makeSheets(){
  var dry=records.filter(function(p){return p.type==='Sec'});
  var maxD=Math.max(0,...drinks.map(function(p){return p.lots.length}));
  var maxS=Math.max(0,...dry.map(function(p){return p.lots.length}));
- var drinkHeaders=['Produit','Date frigo','Qte frigo','Total cave'];
+ var drinkHeaders=['Produit','Date frigo (ancien relevé)','Qte frigo (indicative)','Total cave (suivi)'];
  for(var d=0;d<maxD;d++)drinkHeaders.push('Date cave '+(d+1),'Qte cave '+(d+1));
  var drinkRows=[drinkHeaders];
  drinks.forEach(function(p){
@@ -127,7 +127,7 @@ function makeSheets(){
   for(var z=0;z<maxS;z++){var lot=p.lots[z];row.push(lot?lot.date:'',lot?lot.qty:'')}
   dryRows.push(row);
  });
- var fridgeRows=[['Produit','Date du lot au frigo','Quantité']];
+ var fridgeRows=[['Produit','Date du lot au frigo (ancien relevé)','Quantité indicative']];
  drinks.forEach(function(p){
   (p.shopLots||[]).forEach(function(l){fridgeRows.push([p.name,l.date,l.qty])});
  });
@@ -154,8 +154,8 @@ function exportCsv(){
  var lines=[['Catégorie','Produit','Lieu','Date du lot','Quantité']];
  records.forEach(function(p){
   if(p.type==='Boisson'){
-   (p.shopLots||[]).forEach(function(l){lines.push([p.type,p.name,'Frigo',l.date,l.qty])});
-   if(!(p.shopLots||[]).length)lines.push([p.type,p.name,'Frigo','',p.shopQty==null?'':p.shopQty]);
+   (p.shopLots||[]).forEach(function(l){lines.push([p.type,p.name,'Frigo (ancien relevé indicatif)',l.date,l.qty])});
+   if(!(p.shopLots||[]).length)lines.push([p.type,p.name,'Frigo (ancien relevé indicatif)','',p.shopQty==null?'':p.shopQty]);
   }
   p.lots.forEach(function(l){lines.push([p.type,p.name,p.type==='Boisson'?'Cave':'Stock',l.date,l.qty])});
   if(!p.lots.length&&p.type!=='Boisson')lines.push([p.type,p.name,'Stock','',0]);
