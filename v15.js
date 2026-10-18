@@ -116,7 +116,10 @@ function switchView(view){
  activeView=view;
  ['stock','scan','dates','history','import'].forEach(function(name){
   el('view-'+name).classList.toggle('hidden',name!==view);
-  document.querySelector('[data-view="'+name+'"]').classList.toggle('active',name===view);
+  var tab=document.querySelector('[data-view="'+name+'"]');
+  tab.classList.toggle('active',name===view);
+  if(name===view)tab.setAttribute('aria-current','page');
+  else tab.removeAttribute('aria-current');
  });
  if(view!=='scan')stopCamera();
  if(view==='stock')renderStock();
