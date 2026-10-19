@@ -8,7 +8,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script defer src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script defer src="./v15.js?v=21"></script>
+<script defer src="./v15.js?v=22"></script>
 <script defer src="./v15-import.js?v=17"></script>
 </head><body>
 <header class="appHeader">
@@ -40,12 +40,14 @@
   <h3>Inventaire physique de la cave</h3>
   <p class="muted">Compare chaque lot avec les bouteilles ou canettes réellement présentes en cave. Une quantité différente ne sera appliquée au stock commun qu'après ta confirmation.</p>
   <p class="muted">Les coches « Vérifié » sont propres à ce téléphone et à la journée. Le stock corrigé, lui, est partagé entre les appareils.</p>
+  <p class="muted">Les boissons dont aucun lot n’est enregistré sont également proposées. Saisis 0 si elles sont absentes, ou indique une quantité et sa date de péremption pour créer le lot retrouvé. Les modifications du stock commun demandent confirmation.</p>
   <div id="recountSummary" aria-live="polite"></div>
   <input id="recountSearch" type="search" placeholder="Rechercher une boisson…" aria-label="Rechercher une boisson à compter">
   <label for="recountFilter">Afficher</label>
   <select id="recountFilter">
-   <option value="pending">Lots à vérifier</option>
-   <option value="all">Tous les lots</option>
+   <option value="pending">À vérifier</option>
+   <option value="all">Tous les lots et références</option>
+   <option value="missing">Références sans lot</option>
   </select>
   <div id="recountMessage" class="msg" aria-live="polite"></div>
   <div id="recountList"></div>
