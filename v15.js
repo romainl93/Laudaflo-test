@@ -3,7 +3,7 @@
 // Les autorisations et toutes les ecritures sont controlees par la base.
 var supa=null, records=[], barcodes={}, movements=[], selectedKey='', activeView='stock';
 var ready=false, loading=false, writing=false, timer=null, scanner=null, liveScanner=false;
-var recountOpen=false, recountProgress={}, recountDrafts={};
+var recountOpen=false, recountProgress={}, recountDrafts={}, recountDateDrafts={};
 var projectUrl='https://bsnlgolauuvktvrkaxtx.supabase.co';
 var publishable='sb_publishable_ZUE32prMoTrnlyVnBQRbpQ_hSYTVKBK';
 function el(id){return document.getElementById(id)}
@@ -67,7 +67,7 @@ async function signOut(){
  if(timer){clearInterval(timer);timer=null}
  await stopCamera();
  try{await supa.auth.signOut()}catch(e){}
- records=[];barcodes={};movements=[];selectedKey='';recountProgress={};recountDrafts={};recountOpen=false;el('recountPanel').classList.add('hidden');
+ records=[];barcodes={};movements=[];selectedKey='';recountProgress={};recountDrafts={};recountDateDrafts={};recountOpen=false;el('recountPanel').classList.add('hidden');
  el('password').value='';el('accountLabel').textContent='';
  setScreen(false);el('signOutAuth').classList.add('hidden');
  message('authInfo','Compte déconnecté.');
@@ -306,32 +306,43 @@ function toggleRecount(){
 }
 function resetRecount(){
  if(!window.confirm('Effacer seulement les coches de comptage de ce téléphone ? Le stock partagé ne sera pas modifié.'))return;
- recountProgress={};recountDrafts={};saveRecountProgress();renderRecount(true);
+ recountProgress={};recountDrafts={};recountDateDrafts={};saveRecountProgress();renderRecount(true);
  message('recountMessage','Coches réinitialisées. Aucune quantité de stock modifiée.');
 }
 function renderRecount(force){
  if(!recountOpen||!ready)return;
  var active=document.activeElement;
- if(!force&&active&&el('recountPanel').contains(active)&&active.tagName==='INPUT'&&active.type==='number')return;
+ if(!force&&active&&el('recountPanel').contains(active)&&active.tagName==='INPUT')return;
  var all=[];
  records.forEach(function(p){
   if(p.type!=='Boisson')return;
-  p.lots.forEach(function(l){
-   if(Number(l.qty)>0)all.push({p:p,l:l,key:productKey(p),id:recountKey(productKey(p),l.date)});
+  var lots=p.lots.filter(function(l){return Number(l.qty)>0});
+  if(!lots.length){
+   var missingId=recountKey(productKey(p),'__aucun_lot__');
+   all.push({p:p,l:{date:'__aucun_lot__',qty:0},key:productKey(p),id:missingId,missing:true});
+  }else lots.forEach(function(l){
+   all.push({p:p,l:l,key:productKey(p),id:recountKey(productKey(p),l.date),missing:false});
   });
  });
+ var missing=all.filter(function(x){return x.missing}).length;
  var verified=all.filter(function(x){return recountDone(x.p,x.l)}).length;
- el('recountSummary').textContent=verified+' lot(s) vérifié(s) sur '+all.length+' en cave aujourd’hui • '+(all.length-verified)+' à vérifier.';
+ el('recountSummary').textContent=verified+' vérification(s) terminée(s) sur '+all.length
+  +' • '+(all.length-verified)+' à vérifier • '+missing+' référence(s) sans lot enregistré.';
  var query=el('recountSearch').value.trim().toLocaleLowerCase();
- var showAll=el('recountFilter').value==='all';
+ var filter=el('recountFilter').value;
  var filtered=all.filter(function(x){
-  return (showAll||!recountDone(x.p,x.l))&&(!query||x.p.name.toLocaleLowerCase().includes(query));
+  return (filter!=='pending'||!recountDone(x.p,x.l))
+    &&(filter!=='missing'||x.missing)
+    &&(!query||x.p.name.toLocaleLowerCase().includes(query));
  });
- filtered.sort(function(a,b){return a.p.name.localeCompare(b.p.name,'fr')||sortExpiryDate(a.l.date,b.l.date)});
+ filtered.sort(function(a,b){
+  return a.p.name.localeCompare(b.p.name,'fr')||sortExpiryDate(a.l.date,b.l.date);
+ });
  var list=el('recountList');list.replaceChildren();
  if(!filtered.length){
   var empty=document.createElement('p');empty.className='muted';
-  empty.textContent=query?'Aucun lot ne correspond à cette recherche.':'Tous les lots affichables sont vérifiés. Tu peux choisir « Tous les lots » pour les revoir.';
+  empty.textContent=query?'Aucun produit ne correspond à cette recherche.':
+   'Aucune référence à afficher pour ce filtre. Choisis « Tous les lots et références » pour tout revoir.';
   list.appendChild(empty);return;
  }
  filtered.slice(0,35).forEach(function(x,i){
@@ -339,26 +350,80 @@ function renderRecount(force){
   var item=document.createElement('div');item.className='recountCard'+(done?' recountCardDone':'');
   var title=document.createElement('strong');title.textContent=x.p.name;
   var meta=document.createElement('p');meta.className='muted';
-  meta.textContent='Lot : '+(x.l.date||'sans date')+' • Enregistré : '+x.l.qty+' unité(s)';
+  meta.textContent=x.missing?'Aucun lot enregistré dans la cave. Vérifie si ce produit est présent.':
+   'Lot : '+(x.l.date||'sans date')+' • Enregistré : '+x.l.qty+' unité(s)';
   item.append(title,meta);
   if(done){
-   var tag=document.createElement('span');tag.className='recountDoneLabel';tag.textContent='✓ Vérifié aujourd’hui';item.appendChild(tag);
+   var tag=document.createElement('span');tag.className='recountDoneLabel';
+   tag.textContent='✓ Vérifié aujourd’hui';item.appendChild(tag);
   }
   var label=document.createElement('label'),input=document.createElement('input');
   var inputId='recountQty'+i;
-  label.htmlFor=inputId;label.textContent='Quantité réellement comptée';
+  label.htmlFor=inputId;
+  label.textContent=x.missing?'Quantité trouvée dans la cave (0 si absente)':'Quantité réellement comptée';
   input.id=inputId;input.type='number';input.min='0';input.step='1';input.inputMode='numeric';
   input.placeholder='Nombre compté';
   input.value=Object.prototype.hasOwnProperty.call(recountDrafts,x.id)?recountDrafts[x.id]:'';
   input.oninput=function(){recountDrafts[x.id]=input.value};
-  var btn=document.createElement('button');btn.textContent='Valider ce lot';btn.className='recountValidate';
-  btn.onclick=function(){saveRecount(x.key,x.l.date,x.l.qty)};
-  item.append(label,input,btn);list.appendChild(item);
+  item.append(label,input);
+  if(x.missing){
+   var dateLabel=document.createElement('label'),dateInput=document.createElement('input');
+   var dateId='recountDate'+i;dateLabel.htmlFor=dateId;
+   dateLabel.textContent='Date de péremption (si quantité supérieure à 0)';
+   dateInput.id=dateId;dateInput.type='date';
+   dateInput.value=recountDateDrafts[x.id]||'';
+   dateInput.oninput=function(){recountDateDrafts[x.id]=dateInput.value};
+   item.append(dateLabel,dateInput);
+  }
+  var btn=document.createElement('button');
+  btn.textContent=x.missing?'Valider cette référence':'Valider ce lot';
+  btn.className='recountValidate';
+  btn.onclick=function(){if(x.missing)saveMissingRecount(x.key);else saveRecount(x.key,x.l.date,x.l.qty)};
+  item.appendChild(btn);list.appendChild(item);
  });
  if(filtered.length>35){
   var note=document.createElement('p');note.className='muted';
-  note.textContent=filtered.length-35+' autres lots non affichés. Affine la recherche ou valide les lots visibles pour afficher la suite.';
+  note.textContent=filtered.length-35+' autres vérifications non affichées. Affine la recherche ou valide les éléments visibles pour afficher la suite.';
   list.appendChild(note);
+ }
+}
+async function saveMissingRecount(key){
+ if(writing||loading)return message('recountMessage','Une synchronisation est en cours. Réessaie.',true);
+ var id=recountKey(key,'__aucun_lot__'),raw=recountDrafts[id],counted=Number(raw);
+ if(raw===undefined||raw===''||!Number.isSafeInteger(counted)||counted<0||counted>100000000)
+  return message('recountMessage','Indique le nombre réellement trouvé (0 si absent).',true);
+ var date=counted>0?excelDate(recountDateDrafts[id]||''):'';
+ if(counted>0&&(!date||dateDays(date)===null))
+  return message('recountMessage','Indique la date de péremption du lot retrouvé.',true);
+ try{
+  await refresh();
+  var p=findProduct(key);
+  if(!p||p.type!=='Boisson'||p.lots.length)
+   throw new Error('Ce produit possède maintenant un lot ou est introuvable. Actualise puis recommence.');
+  if(counted===0){
+   recountProgress[id]={qty:0};
+   delete recountDrafts[id];delete recountDateDrafts[id];
+   saveRecountProgress();renderRecount(true);
+   return message('recountMessage','Référence vérifiée : aucune unité trouvée en cave. Le stock partagé reste inchangé.');
+  }
+  if(!window.confirm(p.name+'\\nQuantité trouvée : '+counted
+   +'\\nDate de péremption : '+date
+   +'\\n\\nCréer ce lot dans le stock partagé ?'))return;
+  writing=true;message('recountMessage','Enregistrement du lot retrouvé…');
+  var result=await supa.rpc('laudaflo_recount_cave',{
+   p_product_key:key,p_date:date,p_expected_qty:0,p_counted_qty:counted
+  });
+  if(result.error)throw result.error;
+  writing=false;
+  delete recountDrafts[id];delete recountDateDrafts[id];
+  await refresh();
+  var updated=findProduct(key),newLot=updated&&updated.lots.find(function(l){return l.date===date});
+  if(newLot)recountProgress[recountKey(key,date)]={qty:Number(newLot.qty)};
+  saveRecountProgress();renderRecount(true);
+  message('recountMessage','Lot ajouté au stock commun et enregistré dans l’historique. Quantité : '+counted+'.');
+ }catch(err){
+  writing=false;message('recountMessage','Vérification non enregistrée : '+err.message,true);
+  await refresh();
  }
 }
 async function saveRecount(key,date,shownQty){
@@ -379,13 +444,14 @@ async function saveRecount(key,date,shownQty){
   if(difference!==0){
    if(!window.confirm(p.name+' — lot '+(date||'sans date')+'\\nStock enregistré : '+current+'\\nStock compté : '+counted+'\\nÉcart : '+(difference>0?'+':'')+difference+'\\n\\nConfirmer la correction du stock partagé ?'))return;
    writing=true;message('recountMessage','Correction du stock partagé en cours…');
-   var result=await supa.rpc('laudaflo_change_stock',{p_product_key:key,p_operation:'correction',p_date:date,p_amount:counted});
+   var result=await supa.rpc('laudaflo_recount_cave',{p_product_key:key,p_date:date,p_expected_qty:current,p_counted_qty:counted});
    if(result.error)throw result.error;
    writing=false;await refresh();
   }
   var updated=findProduct(key),updatedLot=updated&&updated.lots.find(function(l){return l.date===date});
   // Un lot remis à zéro disparaît de la liste des lots positifs.
-  recountProgress[id]={qty:updatedLot?Number(updatedLot.qty):0};
+  if(updatedLot)recountProgress[id]={qty:Number(updatedLot.qty)};
+  else if(updated&&!updated.lots.length)recountProgress[recountKey(key,'__aucun_lot__')]={qty:0};
   delete recountDrafts[id];saveRecountProgress();renderRecount(true);
   message('recountMessage',difference===0?'Lot vérifié : aucune correction nécessaire.':
     'Inventaire corrigé : '+(difference>0?'+':'')+difference+' unité(s) sur le stock commun.');
